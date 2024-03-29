@@ -231,7 +231,7 @@ void setCalibratedParameterValue(uint8_t pid, int16_t value)
 {
   int16_t previous = getParameterValue(pid);
   // IIR exponential filter with lambda 0.75: y[n] = 0.75*y[n-1] + 0.25*x[n]
-  float v = (float)((previous * 3 + value) >> 2) ;
+  value = (float)((previous * 3 + value) >> 2) ;
 
   if (value < configuration.params_min[pid])
   {
@@ -241,9 +241,9 @@ void setCalibratedParameterValue(uint8_t pid, int16_t value)
   {
     value = configuration.params_max[pid];
   }
-  v = (4095.f / (configuration.params_max[pid] - configuration.params_min[pid])) * (value - configuration.params_min[pid]);
+  value = (4095.f / (configuration.params_max[pid] - configuration.params_min[pid])) * (value - configuration.params_min[pid]);
 
-  setParameterValue(pid, v);
+  setParameterValue(pid, value);
 }
 
 void setMux(uint8_t index)
