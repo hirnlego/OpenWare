@@ -1,5 +1,9 @@
 # Oneiroi firmware changelog
 
+## 0.9.75 (2024-03-29)
+
+- fixed noisy faders with sine waves (<https://github.com/Befaco/Oneiroi/issues/13>)
+
 ## 0.9.74 (2024-03-24)
 
 - fixed saving to flash
