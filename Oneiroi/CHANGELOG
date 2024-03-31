@@ -1,5 +1,10 @@
 # Oneiroi firmware changelog
 
+## 0.9.76 (2024-03-31)
+
+- changed both pre/post switch and record button to GPIO_INPUT (were EXTI), also
+  fixing <https://github.com/Befaco/Oneiroi/issues/12>
+
 ## 0.9.75 (2024-03-29)
 
 - fixed noisy faders with sine waves (<https://github.com/Befaco/Oneiroi/issues/13>)

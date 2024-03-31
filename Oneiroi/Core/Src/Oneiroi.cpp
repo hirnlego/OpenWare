@@ -38,7 +38,7 @@
 #define RANDOM_GATE BUTTON_4
 #define SYNC_GATE BUTTON_5
 #define INLEVELRED BUTTON_6
-#define PREPOST_SWITCH BUTTON_7
+#define PRE_POST_SWITCH BUTTON_7
 #define SSWT_SWITCH BUTTON_8
 #define MOD_CV_GREEN BUTTON_9
 #define MOD_CV_RED BUTTON_10
@@ -140,29 +140,27 @@ Configuration configuration = {
 CalibrationStep calibrationStep = CALIBRATION_NONE;
 float c3 = -1;
 float c1 = -1;
-float calibrationValue = -1;
 
 ConfigMode configMode = CONFIG_MODE_NONE;
 
+static bool recordButtonState = false;
 static bool randomButtonState = false;
 static bool sswtSwitchState = false;
+static bool prePostSwitchState = false;
 static bool shiftButtonState = false;
 static bool modCvButtonState = false;
 static uint16_t randomAmountState = 0;
 static uint16_t mux_values[NOF_MUX_VALUES] DMA_RAM = {};
 
-//Settings settings;
-
+Pin recordButton(RECORD_BUTTON_GPIO_Port, RECORD_BUTTON_Pin);
 Pin randomGate(RANDOM_GATE_GPIO_Port, RANDOM_GATE_Pin);
 Pin randomButton(RANDOM_BUTTON_GPIO_Port, RANDOM_BUTTON_Pin);
 Pin shiftButton(SHIFT_BUTTON_GPIO_Port, SHIFT_BUTTON_Pin);
 Pin sswtSwitch(SSWT_SWITCH_GPIO_Port, SSWT_SWITCH_Pin);
+Pin prePostSwitch(PRE_POST_SWITCH_GPIO_Port, PRE_POST_SWITCH_Pin);
 Pin randomAmountSwitch1(RANDOM_AMOUNT_SWITCH1_GPIO_Port, RANDOM_AMOUNT_SWITCH1_Pin);
 Pin randomAmountSwitch2(RANDOM_AMOUNT_SWITCH2_GPIO_Port, RANDOM_AMOUNT_SWITCH2_Pin);
 Pin modCvButton(MOD_CV_BUTTON_GPIO_Port, MOD_CV_BUTTON_Pin);
-
-//Pin funcLed1(FUNC_1_LED_GPIO_Port, FUNC_1_LED_Pin);
-//Pin funcLed2(SHIFT_LED_GPIO_Port, SHIFT_LED_Pin);
 
 // MUX binary counter digital output pins
 Pin muxA(MUX_A_GPIO_Port, MUX_A_Pin);
@@ -321,6 +319,15 @@ extern "C"
 
 void readGpio()
 {
+  if (recordButtonState != !recordButton.get()) // Inverted: pressed = false
+  {
+    recordButtonState = !recordButton.get();
+    setButtonValue(RECORD_BUTTON, recordButtonState);
+    if (CONFIG_MODE_OPTIONS == configMode && recordButtonState)
+    {
+      configuration.mod_attenuverters = !configuration.mod_attenuverters;
+    }
+  }
   if (randomButtonState != !randomButton.get()) // Inverted: pressed = false
   {
     randomButtonState = !randomButton.get();
@@ -334,6 +341,11 @@ void readGpio()
   {
     sswtSwitchState = !sswtSwitch.get();
     setButtonValue(SSWT_SWITCH, sswtSwitchState);
+  }
+  if (prePostSwitchState != !prePostSwitch.get()) // Inverted: pressed = false
+  {
+    prePostSwitchState = !prePostSwitch.get();
+    setButtonValue(PRE_POST_SWITCH, prePostSwitchState);
   }
   if (shiftButtonState != !shiftButton.get()) // Inverted: pressed = false
   {
@@ -407,16 +419,6 @@ void onChangePin(uint16_t pin)
       setButtonValue(SYNC_GATE, state);
       break;
     }
-    case RECORD_BUTTON_Pin:
-    {
-      bool state = HAL_GPIO_ReadPin(RECORD_BUTTON_GPIO_Port, RECORD_BUTTON_Pin) == GPIO_PIN_RESET; // Inverted
-      setButtonValue(RECORD_BUTTON, state);
-      if (CONFIG_MODE_OPTIONS == configMode && state)
-      {
-        configuration.mod_attenuverters = !configuration.mod_attenuverters;
-      }
-      break;
-    }
     case RECORD_GATE_Pin:
     {
       bool state = HAL_GPIO_ReadPin(RECORD_GATE_GPIO_Port, RECORD_GATE_Pin) == GPIO_PIN_RESET; // Inverted
@@ -427,12 +429,6 @@ void onChangePin(uint16_t pin)
     {
       bool state = HAL_GPIO_ReadPin(RANDOM_GATE_GPIO_Port, RANDOM_GATE_Pin) == GPIO_PIN_RESET; // Inverted
       setButtonValue(RANDOM_GATE, state);
-      break;
-    }
-    case PREPOST_SWITCH_Pin:
-    {
-      bool state = HAL_GPIO_ReadPin(PREPOST_SWITCH_GPIO_Port, PREPOST_SWITCH_Pin) == GPIO_PIN_RESET; // Inverted
-      setButtonValue(PREPOST_SWITCH, state);
       break;
     }
   }
@@ -562,10 +558,8 @@ void onSetup()
   }
 
   onChangePin(SYNC_GATE_Pin);
-  onChangePin(RECORD_BUTTON_Pin);
   onChangePin(RECORD_GATE_Pin);
   onChangePin(RANDOM_GATE_Pin);
-  onChangePin(PREPOST_SWITCH_Pin);
 
   loadConfiguration();
 }

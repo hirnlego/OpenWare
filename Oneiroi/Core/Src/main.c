@@ -370,7 +370,7 @@ static void MX_ADC1_Init(void)
   /** Common config
   */
   hadc1.Instance = ADC1;
-  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
+  hadc1.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV16;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
   hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE;
   hadc1.Init.EOCSelection = ADC_EOC_SEQ_CONV;
@@ -1020,8 +1020,8 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(MUX_C_GPIO_Port, MUX_C_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : RANDOM_AMOUNT_SWITCH1_Pin RANDOM_AMOUNT_SWITCH2_Pin */
-  GPIO_InitStruct.Pin = RANDOM_AMOUNT_SWITCH1_Pin|RANDOM_AMOUNT_SWITCH2_Pin;
+  /*Configure GPIO pins : RANDOM_AMOUNT_SWITCH1_Pin RANDOM_AMOUNT_SWITCH2_Pin PRE_POST_SWITCH_Pin */
+  GPIO_InitStruct.Pin = RANDOM_AMOUNT_SWITCH1_Pin|RANDOM_AMOUNT_SWITCH2_Pin|PRE_POST_SWITCH_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
@@ -1056,9 +1056,15 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : RECORD_GATE_Pin RECORD_BUTTON_Pin SYNC_GATE_Pin */
-  GPIO_InitStruct.Pin = RECORD_GATE_Pin|RECORD_BUTTON_Pin|SYNC_GATE_Pin;
+  /*Configure GPIO pins : RECORD_GATE_Pin SYNC_GATE_Pin */
+  GPIO_InitStruct.Pin = RECORD_GATE_Pin|SYNC_GATE_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : RECORD_BUTTON_Pin SHIFT_BUTTON_Pin */
+  GPIO_InitStruct.Pin = RECORD_BUTTON_Pin|SHIFT_BUTTON_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
@@ -1076,12 +1082,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PREPOST_SWITCH_Pin */
-  GPIO_InitStruct.Pin = PREPOST_SWITCH_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(PREPOST_SWITCH_GPIO_Port, &GPIO_InitStruct);
-
   /*Configure GPIO pins : RANDOM_BUTTON_LED_Pin INLEVELRED_LED_Pin */
   GPIO_InitStruct.Pin = RANDOM_BUTTON_LED_Pin|INLEVELRED_LED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -1094,12 +1094,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : SHIFT_BUTTON_Pin */
-  GPIO_InitStruct.Pin = SHIFT_BUTTON_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(SHIFT_BUTTON_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PD3 PD4 PD5 */
   GPIO_InitStruct.Pin = GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_5;
@@ -1134,9 +1128,6 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(RANDOM_GATE_GPIO_Port, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 15, 0);
-  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
-
   HAL_NVIC_SetPriority(EXTI15_10_IRQn, 15, 0);
   HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
