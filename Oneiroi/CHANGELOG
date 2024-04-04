@@ -1,5 +1,9 @@
 # Oneiroi firmware changelog
 
+## 0.9.77 (2024-04-04)
+
+- three points v/oct calibration (<https://github.com/Befaco/Oneiroi/issues/17>)
+
 ## 0.9.76 (2024-03-31)
 
 - changed both pre/post switch and record button to GPIO_INPUT (were EXTI), also

@@ -113,13 +113,16 @@ enum CalibrationStep
   CALIBRATION_NONE,
   CALIBRATION_C1,
   CALIBRATION_C3,
+  CALIBRATION_C6,
   CALIBRATION_PARAMS,
 };
 
 struct Configuration
 {
-  uint32_t voct_scale;
-  uint32_t voct_offset;
+  uint32_t voct1_scale; // For C0-C4 range
+  uint32_t voct1_offset;
+  uint32_t voct2_scale; // For C5-C9 range
+  uint32_t voct2_offset;
   bool soft_takeover;
   bool mod_attenuverters;
   bool cv_attenuverters;
@@ -130,6 +133,8 @@ struct Configuration
 Configuration configuration = {
   (uint32_t)118.581421f * UINT16_MAX,
   (uint32_t)2.18576622f * UINT16_MAX,
+  (uint32_t)118.581421f * UINT16_MAX,
+  (uint32_t)2.18576622f * UINT16_MAX,
   true,
   false,
   false,
@@ -138,8 +143,9 @@ Configuration configuration = {
 };
 
 CalibrationStep calibrationStep = CALIBRATION_NONE;
-float c3 = -1;
 float c1 = -1;
+float c3 = -1;
+float c6 = -1;
 
 ConfigMode configMode = CONFIG_MODE_NONE;
 
@@ -272,6 +278,10 @@ void readMux(uint8_t index, uint16_t *mux_values)
   else if (CALIBRATION_C3 == calibrationStep)
   {
     c3 = muxB / 4096.f;
+  }
+  else if (CALIBRATION_C6 == calibrationStep)
+  {
+    c6 = muxB / 4096.f;
   }
   else if (CALIBRATION_PARAMS == calibrationStep)
   {
@@ -629,7 +639,6 @@ void onLoop(void)
       {
         if (CONFIG_MODE_CALIBRATION == configMode)
         {
-
           // Buttons have been released.
           if (CALIBRATION_NONE == calibrationStep)
           {
@@ -644,10 +653,20 @@ void onLoop(void)
               // Enter C3 calibration.
               calibrationStep = CALIBRATION_C3;
               setLed(RECORD_LED, 0);
-              setLed(RANDOM_LED, 1);
+              setLed(SHIFT_LED, 1);
             }
           }
           else if (CALIBRATION_C3 == calibrationStep)
+          {
+            if (shiftButtonPressed)
+            {
+              // Enter params calibration.
+              calibrationStep = CALIBRATION_C6;
+              setLed(SHIFT_LED, 0);
+              setLed(RANDOM_LED, 1);
+            }
+          }
+          else if (CALIBRATION_C6 == calibrationStep)
           {
             if (rndButtonPressed)
             {
@@ -665,8 +684,12 @@ void onLoop(void)
               // Save and exit calibration.
               float scalar = 24 / (c3 - c1);
               float offset = 12 - scalar * c1;
-              configuration.voct_offset = offset * UINT16_MAX;
-              configuration.voct_scale = scalar * UINT16_MAX;
+              configuration.voct1_offset = offset * UINT16_MAX;
+              configuration.voct1_scale = scalar * UINT16_MAX;
+              scalar = 36 / (c6 - c3);
+              offset = 36 - scalar * c3;
+              configuration.voct2_offset = offset * UINT16_MAX;
+              configuration.voct2_scale = scalar * UINT16_MAX;
               saveConfiguration();
               configMode = CONFIG_MODE_NONE;
               calibrationStep = CALIBRATION_NONE;
