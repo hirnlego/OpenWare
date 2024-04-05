@@ -222,13 +222,13 @@ void loadConfiguration()
   }
 }
 
-void setVoctParameterValue(int16_t value)
+void setUncalibratedParameterValue(uint8_t pid, int16_t value)
 {
-  int16_t previous = getParameterValue(OSC_VOCT_CV);
+  int16_t previous = getParameterValue(pid);
   // IIR exponential filter with lambda 0.75: y[n] = 0.75*y[n-1] + 0.25*x[n]
   value = (float)((previous * 3 + value) >> 2);
 
-  setParameterValue(OSC_VOCT_CV, value);
+  setParameterValue(pid, value);
 }
 
 void setCalibratedParameterValue(uint8_t pid, int16_t value)
@@ -266,7 +266,7 @@ void readMux(uint8_t index, uint16_t *mux_values)
   uint16_t muxE = 4095 - mux_values[MUX_E];
 
   setCalibratedParameterValue(REVERB_TONESIZE_CV, muxA);
-  setVoctParameterValue(muxB);
+  setCalibratedParameterValue(OSC_VOCT_CV, muxB);
   setCalibratedParameterValue(PARAMETER_BA + index, muxC);
   setCalibratedParameterValue(PARAMETER_CA + index, muxD);
   setCalibratedParameterValue(PARAMETER_DA + index, muxE);
@@ -299,6 +299,26 @@ void readMux(uint8_t index, uint16_t *mux_values)
       // Exclude random mode switch.
       configuration.params_max[PARAMETER_DA + index] = max(configuration.params_max[PARAMETER_DA + index], 4095-mux_values[MUX_E]);
     }
+
+    // Calibrate CVs with hardcoded values.
+    configuration.params_min[OSC_DETUNE_CV] = 0;
+    configuration.params_max[OSC_DETUNE_CV] = 4095;
+    configuration.params_min[FILTER_CUTOFF_CV] = 0;
+    configuration.params_max[FILTER_CUTOFF_CV] = 4095;
+    configuration.params_min[RESONATOR_HARMONY_CV] = 0;
+    configuration.params_max[RESONATOR_HARMONY_CV] = 4095;
+    configuration.params_min[DELAY_TIME_CV] = 0;
+    configuration.params_max[DELAY_TIME_CV] = 4095;
+    configuration.params_min[LOOPER_START_CV] = 0;
+    configuration.params_max[LOOPER_START_CV] = 4095;
+    configuration.params_min[LOOPER_LENGTH_CV] = 0;
+    configuration.params_max[LOOPER_LENGTH_CV] = 4095;
+    configuration.params_min[LOOPER_SPEED_CV] = 0;
+    configuration.params_max[LOOPER_SPEED_CV] = 4095;
+    configuration.params_min[REVERB_TONESIZE_CV] = 0;
+    configuration.params_max[REVERB_TONESIZE_CV] = 4095;
+    configuration.params_min[OSC_VOCT_CV] = 0;
+    configuration.params_max[OSC_VOCT_CV] = 4095;
   }
 }
 

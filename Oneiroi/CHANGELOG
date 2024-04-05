@@ -1,5 +1,9 @@
 # Oneiroi firmware changelog
 
+## 0.9.78 (2024-04-05)
+
+- fixed problems with CV's (<https://github.com/Befaco/Oneiroi/issues/22>)
+
 ## 0.9.77 (2024-04-04)
 
 - three points v/oct calibration (<https://github.com/Befaco/Oneiroi/issues/17>)
