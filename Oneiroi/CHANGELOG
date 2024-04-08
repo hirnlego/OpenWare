@@ -1,5 +1,9 @@
 # Oneiroi firmware changelog
 
+## 0.9.79 (2024-04-08)
+
+- using C2, C5 and C8 as the three calibration points
+
 ## 0.9.78 (2024-04-05)
 
 - fixed problems with CV's (<https://github.com/Befaco/Oneiroi/issues/22>)

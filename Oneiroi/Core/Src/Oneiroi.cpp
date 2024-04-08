@@ -111,9 +111,9 @@ enum ConfigMode
 enum CalibrationStep
 {
   CALIBRATION_NONE,
-  CALIBRATION_C1,
-  CALIBRATION_C3,
-  CALIBRATION_C6,
+  CALIBRATION_C2,
+  CALIBRATION_C5,
+  CALIBRATION_C8,
   CALIBRATION_PARAMS,
 };
 
@@ -143,9 +143,9 @@ Configuration configuration = {
 };
 
 CalibrationStep calibrationStep = CALIBRATION_NONE;
-float c1 = -1;
-float c3 = -1;
-float c6 = -1;
+float c2 = -1;
+float c5 = -1;
+float c8 = -1;
 
 ConfigMode configMode = CONFIG_MODE_NONE;
 
@@ -271,17 +271,17 @@ void readMux(uint8_t index, uint16_t *mux_values)
   setCalibratedParameterValue(PARAMETER_CA + index, muxD);
   setCalibratedParameterValue(PARAMETER_DA + index, muxE);
 
-  if (CALIBRATION_C1 == calibrationStep)
+  if (CALIBRATION_C2 == calibrationStep)
   {
-    c1 = muxB / 4096.f;
+    c2 = muxB / 4096.f;
   }
-  else if (CALIBRATION_C3 == calibrationStep)
+  else if (CALIBRATION_C5 == calibrationStep)
   {
-    c3 = muxB / 4096.f;
+    c5 = muxB / 4096.f;
   }
-  else if (CALIBRATION_C6 == calibrationStep)
+  else if (CALIBRATION_C8 == calibrationStep)
   {
-    c6 = muxB / 4096.f;
+    c8 = muxB / 4096.f;
   }
   else if (CALIBRATION_PARAMS == calibrationStep)
   {
@@ -608,13 +608,11 @@ void onLoop(void)
   {
     if (shiftButtonPressed && modCvButtonPressed)
     {
-      owl.setOperationMode(CONFIGURE_MODE);
       configMode = CONFIG_MODE_CALIBRATION;
       buttonPressed = true;
     }
     else if (recButtonPressed && rndButtonPressed)
     {
-      owl.setOperationMode(CONFIGURE_MODE);
       configMode = CONFIG_MODE_OPTIONS;
       buttonPressed = true;
     }
@@ -622,29 +620,39 @@ void onLoop(void)
 
   switch (owl.getOperationMode())
   {
-  case STARTUP_MODE:
-    if (getErrorStatus() != NO_ERROR)
-    {
-      owl.setOperationMode(ERROR_MODE);
-    }
-    break;
   case LOAD_MODE:
-    ledsOff();
-    if (--counter == 0)
+    // Called on patch load.
+    if (CONFIG_MODE_NONE == configMode)
     {
-      counter = PATCH_RESET_COUNTER;
-      owl.setOperationMode(RUN_MODE);
+      ledsOff();
+      if (getErrorStatus() != NO_ERROR)
+      {
+        owl.setOperationMode(ERROR_MODE);
+      }
     }
-    else if (getErrorStatus() != NO_ERROR)
+    else
     {
-      owl.setOperationMode(ERROR_MODE);
+      configMode = CONFIG_MODE_NONE;
+
+      // Restart the patch.
+      program.resetProgram(false);
+      owl.setOperationMode(RUN_MODE);
     }
     break;
   case RUN_MODE:
-    readGpio();
-    if (getErrorStatus() != NO_ERROR)
+    if (CONFIG_MODE_NONE == configMode)
     {
-      owl.setOperationMode(ERROR_MODE);
+      readGpio();
+      if (getErrorStatus() != NO_ERROR)
+      {
+        owl.setOperationMode(ERROR_MODE);
+      }
+    }
+    else
+    {
+      // Stop the patch and enter configuration mode.
+      program.exitProgram(true);
+      owl.setOperationMode(CONFIGURE_MODE);
     }
     break;
 
@@ -662,31 +670,31 @@ void onLoop(void)
           // Buttons have been released.
           if (CALIBRATION_NONE == calibrationStep)
           {
-            // Enter C1 calibration.
-            calibrationStep = CALIBRATION_C1;
+            // Enter C2 calibration.
+            calibrationStep = CALIBRATION_C2;
             setLed(RECORD_LED, 1);
           }
-          else if (CALIBRATION_C1 == calibrationStep)
+          else if (CALIBRATION_C2 == calibrationStep)
           {
             if (recButtonPressed)
             {
-              // Enter C3 calibration.
-              calibrationStep = CALIBRATION_C3;
+              // Enter C5 calibration.
+              calibrationStep = CALIBRATION_C5;
               setLed(RECORD_LED, 0);
               setLed(SHIFT_LED, 1);
             }
           }
-          else if (CALIBRATION_C3 == calibrationStep)
+          else if (CALIBRATION_C5 == calibrationStep)
           {
             if (shiftButtonPressed)
             {
               // Enter params calibration.
-              calibrationStep = CALIBRATION_C6;
+              calibrationStep = CALIBRATION_C8;
               setLed(SHIFT_LED, 0);
               setLed(RANDOM_LED, 1);
             }
           }
-          else if (CALIBRATION_C6 == calibrationStep)
+          else if (CALIBRATION_C8 == calibrationStep)
           {
             if (rndButtonPressed)
             {
@@ -700,19 +708,18 @@ void onLoop(void)
           {
             if (modCvButtonPressed)
             {
-              setLed(MOD_CV_GREEN_LED, 0);
+              ledsOff();
               // Save and exit calibration.
-              float scalar = 24 / (c3 - c1);
-              float offset = 12 - scalar * c1;
+              float scalar = 36 / (c5 - c2); // C2 - C5
+              float offset = 24 - scalar * c2;
               configuration.voct1_offset = offset * UINT16_MAX;
               configuration.voct1_scale = scalar * UINT16_MAX;
-              scalar = 36 / (c6 - c3);
-              offset = 36 - scalar * c3;
+              scalar = 36 / (c8 - c5); // C5 - C8
+              offset = 60 - scalar * c5;
               configuration.voct2_offset = offset * UINT16_MAX;
               configuration.voct2_scale = scalar * UINT16_MAX;
-              saveConfiguration();
-              configMode = CONFIG_MODE_NONE;
               calibrationStep = CALIBRATION_NONE;
+              saveConfiguration();
               owl.setOperationMode(LOAD_MODE);
             }
           }
@@ -730,7 +737,6 @@ void onLoop(void)
             ledsOff();
             // Save and exit calibration.
             saveConfiguration();
-            configMode = CONFIG_MODE_NONE;
             owl.setOperationMode(LOAD_MODE);
           }
         }
