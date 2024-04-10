@@ -634,6 +634,10 @@ void onLoop(void)
     {
       configMode = CONFIG_MODE_NONE;
 
+      // Need to turn the MOD/CV button off before restarting the patch...
+      modCvButtonState = 0;
+      setButtonValue(MOD_CV_BUTTON, modCvButtonState);
+
       // Restart the patch.
       program.resetProgram(false);
       owl.setOperationMode(RUN_MODE);

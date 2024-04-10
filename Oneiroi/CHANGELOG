@@ -1,8 +1,11 @@
 # Oneiroi firmware changelog
 
-## 0.9.79 (2024-04-08)
+## 0.9.79 (2024-04-10)
 
-- using C2, C5 and C8 as the three calibration points
+- allow calibrating without the need to erase patch and storage (<https://github.com/Befaco/Oneiroi/issues/19>)
+- using C2, C5 and C8 as the three calibration points (<https://github.com/Befaco/Oneiroi/issues/17>)
+- disabled USB audio (<https://github.com/Befaco/Oneiroi/issues/20>)
+- using correct firmware version in device.h (<https://github.com/Befaco/Oneiroi/issues/32>)
 
 ## 0.9.78 (2024-04-05)
 
