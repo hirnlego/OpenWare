@@ -314,7 +314,7 @@ void readMux(uint8_t index, uint16_t *mux_values)
     uint16_t max = index == 7 ? 4095 : max(configuration.params_max[PARAMETER_DA + index], muxE);
     configuration.params_max[PARAMETER_DA + index] = max;
   }
-  
+
   setCalibratedParameterValue(REVERB_TONESIZE_CV, muxA);
   setCalibratedParameterValue(OSC_VOCT_CV, muxB);
   setCalibratedParameterValue(PARAMETER_BA + index, muxC);
@@ -832,7 +832,7 @@ bool onMidiSend(uint8_t port, uint8_t status, uint8_t d1, uint8_t d2)
     uint8_t buffer[headerSize + dataSize];
     memset(buffer, 0, headerSize);
     memcpy(buffer + headerSize, data, dataSize);
-    taskENTER_CRITICAL();
+    taskENTER_CRITICAL(); // This causes the audio to glitch
     storage.writeResource(filename, buffer, dataSize, FLASH_DEFAULT_FLAGS);
     taskEXIT_CRITICAL();
 
