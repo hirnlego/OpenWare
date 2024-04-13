@@ -23,8 +23,6 @@
 
 #define PATCH_RESET_COUNTER (500/MAIN_LOOP_SLEEP_MS)
 
-#define NOF_CALIBRATION_DATA 22 // 0-10V (11 values) * 2
-
 #define INLEVELGREEN PARAMETER_AF
 #define MOD PARAMETER_AG
 
@@ -126,18 +124,24 @@ struct Configuration
   bool soft_takeover;
   bool mod_attenuverters;
   bool cv_attenuverters;
+  uint16_t c5;
+  uint16_t pitch_zero;
+  uint16_t speed_zero;
   uint16_t params_min[40];
   uint16_t params_max[40];
 };
 
 Configuration configuration = {
-  (uint32_t)118.581421f * UINT16_MAX,
-  (uint32_t)2.18576622f * UINT16_MAX,
-  (uint32_t)118.581421f * UINT16_MAX,
-  (uint32_t)2.18576622f * UINT16_MAX,
-  true,
+  0,
+  0,
+  0,
+  0,
   false,
   false,
+  false,
+  0,
+  2047,
+  2047,
   {1000},
   {1000}
 };
@@ -148,6 +152,8 @@ float c5 = -1;
 float c8 = -1;
 
 ConfigMode configMode = CONFIG_MODE_NONE;
+
+bool movedParams[NOF_PARAMETERS] = {};
 
 static bool recordButtonState = false;
 static bool randomButtonState = false;
@@ -265,19 +271,30 @@ void readMux(uint8_t index, uint16_t *mux_values)
   uint16_t muxD = 4095 - mux_values[MUX_D];
   uint16_t muxE = 4095 - mux_values[MUX_E];
 
-  setCalibratedParameterValue(REVERB_TONESIZE_CV, muxA);
-  setCalibratedParameterValue(OSC_VOCT_CV, muxB);
-  setCalibratedParameterValue(PARAMETER_BA + index, muxC);
-  setCalibratedParameterValue(PARAMETER_CA + index, muxD);
-  setCalibratedParameterValue(PARAMETER_DA + index, muxE);
-
   if (CALIBRATION_C2 == calibrationStep)
   {
     c2 = muxB / 4096.f;
+
+    // Calibrate centers.
+    if (index == 0)
+    {
+      configuration.speed_zero = muxD;
+    }
+    else if (index == 4)
+    {
+      configuration.pitch_zero = muxD;
+    }
+
+    // Calibrate CVs.
+    configuration.params_min[REVERB_TONESIZE_CV] = min(configuration.params_min[REVERB_TONESIZE_CV], muxA);
+    configuration.params_max[REVERB_TONESIZE_CV] = 4095;
+    configuration.params_min[OSC_VOCT_CV] = min(configuration.params_min[OSC_VOCT_CV], muxB);
+    configuration.params_max[OSC_VOCT_CV] = 4095;
   }
   else if (CALIBRATION_C5 == calibrationStep)
   {
     c5 = muxB / 4096.f;
+    configuration.c5 = muxB;
   }
   else if (CALIBRATION_C8 == calibrationStep)
   {
@@ -285,41 +302,24 @@ void readMux(uint8_t index, uint16_t *mux_values)
   }
   else if (CALIBRATION_PARAMS == calibrationStep)
   {
-    configuration.params_min[PARAMETER_BA + index] = min(configuration.params_min[PARAMETER_BA + index], 4095-mux_values[MUX_C]);
-    configuration.params_min[PARAMETER_CA + index] = min(configuration.params_min[PARAMETER_CA + index], 4095-mux_values[MUX_D]);
-    if (index < 7)
-    {
-      // Exclude random mode switch.
-      configuration.params_min[PARAMETER_DA + index] = min(configuration.params_min[PARAMETER_DA + index], 4095-mux_values[MUX_E]);
-    }
-    configuration.params_max[PARAMETER_BA + index] = max(configuration.params_max[PARAMETER_BA + index], 4095-mux_values[MUX_C]);
-    configuration.params_max[PARAMETER_CA + index] = max(configuration.params_max[PARAMETER_CA + index], 4095-mux_values[MUX_D]);
-    if (index < 7)
-    {
-      // Exclude random mode switch.
-      configuration.params_max[PARAMETER_DA + index] = max(configuration.params_max[PARAMETER_DA + index], 4095-mux_values[MUX_E]);
-    }
+    configuration.params_min[PARAMETER_BA + index] = min(configuration.params_min[PARAMETER_BA + index], muxC);
+    configuration.params_min[PARAMETER_CA + index] = min(configuration.params_min[PARAMETER_CA + index], muxD);
+    // Exception for random mode.
+    uint16_t min = index == 7 ? 0 : min(configuration.params_min[PARAMETER_DA + index], muxE);
+    configuration.params_min[PARAMETER_DA + index] = min;
 
-    // Calibrate CVs with hardcoded values.
-    configuration.params_min[OSC_DETUNE_CV] = 0;
-    configuration.params_max[OSC_DETUNE_CV] = 4095;
-    configuration.params_min[FILTER_CUTOFF_CV] = 0;
-    configuration.params_max[FILTER_CUTOFF_CV] = 4095;
-    configuration.params_min[RESONATOR_HARMONY_CV] = 0;
-    configuration.params_max[RESONATOR_HARMONY_CV] = 4095;
-    configuration.params_min[DELAY_TIME_CV] = 0;
-    configuration.params_max[DELAY_TIME_CV] = 4095;
-    configuration.params_min[LOOPER_START_CV] = 0;
-    configuration.params_max[LOOPER_START_CV] = 4095;
-    configuration.params_min[LOOPER_LENGTH_CV] = 0;
-    configuration.params_max[LOOPER_LENGTH_CV] = 4095;
-    configuration.params_min[LOOPER_SPEED_CV] = 0;
-    configuration.params_max[LOOPER_SPEED_CV] = 4095;
-    configuration.params_min[REVERB_TONESIZE_CV] = 0;
-    configuration.params_max[REVERB_TONESIZE_CV] = 4095;
-    configuration.params_min[OSC_VOCT_CV] = 0;
-    configuration.params_max[OSC_VOCT_CV] = 4095;
+    configuration.params_max[PARAMETER_BA + index] = max(configuration.params_max[PARAMETER_BA + index], muxC);
+    configuration.params_max[PARAMETER_CA + index] = max(configuration.params_max[PARAMETER_CA + index], muxD);
+    // Exception for random mode.
+    uint16_t max = index == 7 ? 4095 : max(configuration.params_max[PARAMETER_DA + index], muxE);
+    configuration.params_max[PARAMETER_DA + index] = max;
   }
+  
+  setCalibratedParameterValue(REVERB_TONESIZE_CV, muxA);
+  setCalibratedParameterValue(OSC_VOCT_CV, muxB);
+  setCalibratedParameterValue(PARAMETER_BA + index, muxC);
+  setCalibratedParameterValue(PARAMETER_CA + index, muxD);
+  setCalibratedParameterValue(PARAMETER_DA + index, muxE);
 }
 
 extern "C"
@@ -341,6 +341,11 @@ extern "C"
       for (size_t i = 0; i < NOF_ADC_VALUES; i++)
       {
         uint16_t value = 4095 - adc_values[i];
+        if (CALIBRATION_C2 == calibrationStep)
+        {
+          configuration.params_min[i] = min(configuration.params_min[i], value);
+          configuration.params_max[i] = 4095;
+        }
         setCalibratedParameterValue(i, value);
       }
     }

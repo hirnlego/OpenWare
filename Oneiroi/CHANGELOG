@@ -1,5 +1,10 @@
 # Oneiroi firmware changelog
 
+## 0.9.80 (2024-04-13)
+
+- fixed random mode calibration
+- calibration of pitch and looper speed center positions (<https://github.com/Befaco/Oneiroi/issues/17>)
+
 ## 0.9.79 (2024-04-10)
 
 - allow calibrating without the need to erase patch and storage (<https://github.com/Befaco/Oneiroi/issues/19>)
