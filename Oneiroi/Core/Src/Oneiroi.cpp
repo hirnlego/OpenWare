@@ -286,9 +286,9 @@ void readMux(uint8_t index, uint16_t *mux_values)
     }
 
     // Calibrate CVs.
-    configuration.params_min[REVERB_TONESIZE_CV] = min(configuration.params_min[REVERB_TONESIZE_CV], muxA);
+    configuration.params_min[REVERB_TONESIZE_CV] = 0;
     configuration.params_max[REVERB_TONESIZE_CV] = 4095;
-    configuration.params_min[OSC_VOCT_CV] = min(configuration.params_min[OSC_VOCT_CV], muxB);
+    configuration.params_min[OSC_VOCT_CV] = 0;
     configuration.params_max[OSC_VOCT_CV] = 4095;
   }
   else if (CALIBRATION_C5 == calibrationStep)
@@ -343,7 +343,7 @@ extern "C"
         uint16_t value = 4095 - adc_values[i];
         if (CALIBRATION_C2 == calibrationStep)
         {
-          configuration.params_min[i] = min(configuration.params_min[i], value);
+          configuration.params_min[i] = 0;
           configuration.params_max[i] = 4095;
         }
         setCalibratedParameterValue(i, value);
