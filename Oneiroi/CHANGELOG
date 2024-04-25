@@ -1,5 +1,9 @@
 # Oneiroi firmware changelog
 
+## 0.9.81 (2024-04-25)
+
+- fixed wrong CV calibration
+
 ## 0.9.80 (2024-04-13)
 
 - fixed random mode calibration
