@@ -56,16 +56,16 @@ uint32_t findFirstFreePage(uint32_t start, uint32_t end, size_t align){
   return end;
 }
 #endif
-  
+
 void Storage::init(){
 #if defined USE_SPI_FLASH
   extern SPI_HandleTypeDef SPI_FLASH_HANDLE;
   if(flash_init(&SPI_FLASH_HANDLE))
-    error(FLASH_ERROR, "Init failed");     
+    error(FLASH_ERROR, "Init failed");
 #elif defined USE_QSPI_FLASH
   extern QSPI_HandleTypeDef QSPI_FLASH_HANDLE;
   if(flash_init(&QSPI_FLASH_HANDLE))
-    error(FLASH_ERROR, "Init failed");     
+    error(FLASH_ERROR, "Init failed");
 #endif
   index();
 }
@@ -171,7 +171,7 @@ size_t Storage::readResource(ResourceHeader* header, void* data, size_t offset, 
 #endif
     }
   }
-  return ret;    
+  return ret;
 }
 
 bool Storage::eraseResource(uint8_t slot){
@@ -195,7 +195,7 @@ bool Storage::eraseResource(ResourceHeader* header){
 
 // mark as deleted
 bool Storage::eraseResource(Resource* resource){
-  bool status = false;  
+  bool status = false;
   if(resource->isMemoryMapped()){
 #ifdef USE_FLASH
     ResourceHeader* header = resource->getHeader();
@@ -327,7 +327,7 @@ size_t Storage::writeResourceHeader(void* dest, const char* name, size_t datasiz
 // data must already include space for ResourceHeader
 size_t Storage::writeResource(const char* name, uint8_t* data, size_t datasize, uint32_t flags){
   uint32_t crc = crc32(data+sizeof(ResourceHeader), datasize, 0);
-  writeResourceHeader(data, name, datasize, crc, flags);  
+  writeResourceHeader(data, name, datasize, crc, flags);
   return writeResource((ResourceHeader*)data);
 }
 
@@ -356,7 +356,7 @@ size_t Storage::writeResource(ResourceHeader* header){
     old = getResourceBySlot(slot);
   }else{
     old = getResourceByName(header->name);
-  }      
+  }
   if(old){
     if(old->getDataSize() == header->size &&
        header->checksum == old->getChecksum()){

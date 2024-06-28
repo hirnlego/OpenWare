@@ -131,20 +131,7 @@ struct Configuration
   uint16_t params_max[40];
 };
 
-Configuration configuration = {
-  0,
-  0,
-  0,
-  0,
-  false,
-  false,
-  false,
-  0,
-  2047,
-  2047,
-  {1000},
-  {1000}
-};
+Configuration configuration;
 
 CalibrationStep calibrationStep = CALIBRATION_NONE;
 float c2 = -1;
@@ -153,7 +140,7 @@ float c8 = -1;
 
 ConfigMode configMode = CONFIG_MODE_NONE;
 
-bool movedParams[NOF_PARAMETERS] = {};
+bool needsConfiguration = false;
 
 static bool recordButtonState = false;
 static bool randomButtonState = false;
@@ -179,30 +166,6 @@ Pin muxA(MUX_A_GPIO_Port, MUX_A_Pin);
 Pin muxB(MUX_B_GPIO_Port, MUX_B_Pin);
 Pin muxC(MUX_C_GPIO_Port, MUX_C_Pin);
 
-void test()
-{
-    // Start the save process.
-    MidiMessage msg = MidiMessage(USB_COMMAND_SINGLE_BYTE, START, 0, 0);
-    midi_send(msg.data[0], msg.data[1], msg.data[2], msg.data[3]); // send MIDI START
-    int16_t values[13];
-    for (size_t i = 0; i < 13; i++)
-    {
-        // Convert to 14-bit signed int.
-        int16_t value = (int16_t)(values[i] * 8192);
-        // Send the parameter's value.
-        MidiMessage msg = MidiMessage::pb(i, value);
-        midi_send(msg.data[0], msg.data[1], msg.data[2], msg.data[3]); // send MIDI PITCH BEND
-    }
-    // Send the file index.
-    int8_t fileIndex = 0; // 0: "oneiroi.cfg", 1: "oneiroi.alt", 2: "oneiroi.mod", 3: "oneiroi.cv"
-    msg = MidiMessage::cp(0, fileIndex);
-    midi_send(msg.data[0], msg.data[1], msg.data[2], msg.data[3]); // send MIDI CHANNEL PRESSURE
-
-    // Finish the process.
-    msg = MidiMessage(USB_COMMAND_SINGLE_BYTE, STOP, 0, 0);
-    midi_send(msg.data[0], msg.data[1], msg.data[2], msg.data[3]); // send MIDI STOP
-}
-
 void saveConfiguration()
 {
   debugMessage("Saving configuration");
@@ -220,11 +183,32 @@ void saveConfiguration()
 
 void loadConfiguration()
 {
-  debugMessage("Loading configuration");
   Resource* resource = storage.getResourceByName("oneiroi.cfg");
   if (resource)
   {
+    debugMessage("Loading configuration");
     storage.readResource(resource->getHeader(), &configuration, 0, sizeof(configuration));
+  }
+  else
+  {
+    debugMessage("No configuration found!");
+    needsConfiguration = true;
+
+    // Provide sensible default values.
+    configuration = {
+      7749422, // voct1_scale
+      155770, // voct1_offset
+      7706163, // voct2_scale
+      176850, // voct2_offset
+      false, // soft_takeover
+      false, // mod_attenuverters
+      false, // cv_attenuverters
+      1996, // c5
+      2136, // pitch_zero
+      2128, // speed_zero
+      {0}, // params_min
+      {4095, 4095, 4095, 4095, 4095, 4095, 4095, 0, 0, 0, 4095, 4095, 0, 0, 0, 0, 4082, 4080, 4095, 4093, 4093, 4095, 4081, 4095, 4040, 4039, 4039, 4040, 4040, 4037, 4041, 4040, 4038, 4037, 4035, 4040, 4037, 4042, 4043, 4095} // params_max
+    };
   }
 }
 
@@ -674,6 +658,27 @@ void onLoop(void)
       }
       if (!buttonPressed)
       {
+        if (needsConfiguration)
+        {
+          // Reset configuration before calibration.
+          configuration = {
+            0, // voct1_scale
+            0, // voct1_offset
+            0, // voct2_scale
+            0, // voct2_offset
+            false, // soft_takeover
+            false, // mod_attenuverters
+            false, // cv_attenuverters
+            0, // c5
+            2047, // pitch_zero
+            2047, // speed_zero
+            {1000}, // params_min
+            {1000} // params_max
+          };
+
+          needsConfiguration = false;
+        }
+
         if (CONFIG_MODE_CALIBRATION == configMode)
         {
           // Buttons have been released.
@@ -780,7 +785,7 @@ void onLoop(void)
   }
 }
 
-#define MAX_PATCH_SETTINGS 16
+#define MAX_PATCH_SETTINGS 16 // Max number of available MIDI channels
 #define PATCH_SETTINGS_NAME "oneiroi"
 
 int16_t data[MAX_PATCH_SETTINGS] = {};
@@ -817,12 +822,15 @@ bool onMidiSend(uint8_t port, uint8_t status, uint8_t d1, uint8_t d2)
     switch (fileIndex)
     {
     case 0:
-      filename = PATCH_SETTINGS_NAME ".alt";
+      filename = PATCH_SETTINGS_NAME ".prm";
       break;
     case 1:
-      filename = PATCH_SETTINGS_NAME ".mod";
+      filename = PATCH_SETTINGS_NAME ".alt";
       break;
     case 2:
+      filename = PATCH_SETTINGS_NAME ".mod";
+      break;
+    case 3:
       filename = PATCH_SETTINGS_NAME ".cv";
       break;
     }
