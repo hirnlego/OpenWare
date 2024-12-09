@@ -4,7 +4,7 @@
 #include "hardware.h"
 #include "support.h"
 
-#define FIRMWARE_VERSION "v1.0"
+#define FIRMWARE_VERSION ""
 
 #ifdef USE_SPI_FLASH
 #define USE_NOR_FLASH
