@@ -109,8 +109,8 @@ enum ConfigMode
 enum CalibrationStep
 {
   CALIBRATION_NONE,
-  CALIBRATION_C2,
-  CALIBRATION_C5,
+  CALIBRATION_C0,
+  CALIBRATION_C4,
   CALIBRATION_C8,
   CALIBRATION_PARAMS,
 };
@@ -118,13 +118,13 @@ enum CalibrationStep
 struct Configuration
 {
   uint32_t voct1_scale; // For C0-C4 range
-  uint32_t voct1_offset;
+  int32_t voct1_offset;
   uint32_t voct2_scale; // For C5-C9 range
-  uint32_t voct2_offset;
+  int32_t voct2_offset;
   bool soft_takeover;
   bool mod_attenuverters;
   bool cv_attenuverters;
-  uint16_t c5;
+  uint16_t c4;
   uint16_t pitch_zero;
   uint16_t speed_zero;
   uint16_t params_min[40];
@@ -134,8 +134,8 @@ struct Configuration
 Configuration configuration;
 
 CalibrationStep calibrationStep = CALIBRATION_NONE;
-float c2 = -1;
-float c5 = -1;
+float c0 = -1;
+float c4 = -1;
 float c8 = -1;
 
 ConfigMode configMode = CONFIG_MODE_NONE;
@@ -203,7 +203,7 @@ void loadConfiguration()
       false, // soft_takeover
       false, // mod_attenuverters
       false, // cv_attenuverters
-      1996, // c5
+      1996, // c4
       2136, // pitch_zero
       2128, // speed_zero
       {0}, // params_min
@@ -255,9 +255,9 @@ void readMux(uint8_t index, uint16_t *mux_values)
   uint16_t muxD = 4095 - mux_values[MUX_D];
   uint16_t muxE = 4095 - mux_values[MUX_E];
 
-  if (CALIBRATION_C2 == calibrationStep)
+  if (CALIBRATION_C0 == calibrationStep)
   {
-    c2 = muxB / 4096.f;
+    c0 = muxB / 4096.f;
 
     // Calibrate centers.
     if (index == 0)
@@ -275,10 +275,10 @@ void readMux(uint8_t index, uint16_t *mux_values)
     configuration.params_min[OSC_VOCT_CV] = 0;
     configuration.params_max[OSC_VOCT_CV] = 4095;
   }
-  else if (CALIBRATION_C5 == calibrationStep)
+  else if (CALIBRATION_C4 == calibrationStep)
   {
-    c5 = muxB / 4096.f;
-    configuration.c5 = muxB;
+    c4 = muxB / 4096.f;
+    configuration.c4 = muxB;
   }
   else if (CALIBRATION_C8 == calibrationStep)
   {
@@ -325,7 +325,7 @@ extern "C"
       for (size_t i = 0; i < NOF_ADC_VALUES; i++)
       {
         uint16_t value = 4095 - adc_values[i];
-        if (CALIBRATION_C2 == calibrationStep)
+        if (CALIBRATION_C0 == calibrationStep)
         {
           configuration.params_min[i] = 0;
           configuration.params_max[i] = 4095;
@@ -669,7 +669,7 @@ void onLoop(void)
             false, // soft_takeover
             false, // mod_attenuverters
             false, // cv_attenuverters
-            0, // c5
+            0, // c4
             2047, // pitch_zero
             2047, // speed_zero
             {1000}, // params_min
@@ -684,21 +684,21 @@ void onLoop(void)
           // Buttons have been released.
           if (CALIBRATION_NONE == calibrationStep)
           {
-            // Enter C2 calibration.
-            calibrationStep = CALIBRATION_C2;
+            // Enter C0 calibration.
+            calibrationStep = CALIBRATION_C0;
             setLed(RECORD_LED, 1);
           }
-          else if (CALIBRATION_C2 == calibrationStep)
+          else if (CALIBRATION_C0 == calibrationStep)
           {
             if (recButtonPressed)
             {
-              // Enter C5 calibration.
-              calibrationStep = CALIBRATION_C5;
+              // Enter C4 calibration.
+              calibrationStep = CALIBRATION_C4;
               setLed(RECORD_LED, 0);
               setLed(SHIFT_LED, 1);
             }
           }
-          else if (CALIBRATION_C5 == calibrationStep)
+          else if (CALIBRATION_C4 == calibrationStep)
           {
             if (shiftButtonPressed)
             {
@@ -724,12 +724,12 @@ void onLoop(void)
             {
               ledsOff();
               // Save and exit calibration.
-              float scalar = 36 / (c5 - c2); // C2 - C5
-              float offset = 24 - scalar * c2;
+              float scalar = 48 / (c4 - c0); // C0 - C4
+              float offset = -scalar * c0;
               configuration.voct1_offset = offset * UINT16_MAX;
               configuration.voct1_scale = scalar * UINT16_MAX;
-              scalar = 36 / (c8 - c5); // C5 - C8
-              offset = 60 - scalar * c5;
+              scalar = 48 / (c8 - c4); // C4 - C8
+              offset = 48 - scalar * c4;
               configuration.voct2_offset = offset * UINT16_MAX;
               configuration.voct2_scale = scalar * UINT16_MAX;
               calibrationStep = CALIBRATION_NONE;
