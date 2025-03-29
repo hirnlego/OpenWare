@@ -1,10 +1,10 @@
 
 # Oneiroi firmware changelog
 
-## 2.0.0 (2025-03-25)
+## 2.0.0 (2025-03-29)
 
 - hardware change for fixing lowest 3 semitones of V/Oct CV (<https://github.com/Befaco/Oneiroi/issues/37>)
-- calibration now requires 0v instead of 2v and 4v instead of 5v
+- now 0v at V/Oct CV are required when entering calibration
 
 ## 1.0.0 (2024-10-14)
 
