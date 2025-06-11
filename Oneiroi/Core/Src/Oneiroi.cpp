@@ -315,6 +315,7 @@ void readMux(uint8_t index, uint16_t *mux_values)
     }
     else if (CALIBRATION_PARAMS == calibrationStep)
     {
+        /* Since v2.0 we don't use parameters' calibration anymore.
         configuration.params_min[PARAMETER_BA + index] = min(configuration.params_min[PARAMETER_BA + index], muxC);
         configuration.params_min[PARAMETER_CA + index] = min(configuration.params_min[PARAMETER_CA + index], muxD);
         // Do not calibrate random mode.
@@ -326,13 +327,15 @@ void readMux(uint8_t index, uint16_t *mux_values)
         // Do not calibrate random mode.
         uint16_t max = index == 7 ? 4095 : max(configuration.params_max[PARAMETER_DA + index], muxE);
         configuration.params_max[PARAMETER_DA + index] = max;
+        */
     }
 
-    setCalibratedParameterValue(REVERB_TONESIZE_CV, muxA);
-    setCalibratedParameterValue(OSC_VOCT_CV, muxB);
-    setCalibratedParameterValue(PARAMETER_BA + index, muxC);
-    setCalibratedParameterValue(PARAMETER_CA + index, muxD);
-    setCalibratedParameterValue(PARAMETER_DA + index, muxE);
+    // Since v2.0 we don't use CVs'/parameters' calibration anymore.
+    setUncalibratedParameterValue(REVERB_TONESIZE_CV, muxA);
+    setUncalibratedParameterValue(OSC_VOCT_CV, muxB);
+    setUncalibratedParameterValue(PARAMETER_BA + index, muxC);
+    setUncalibratedParameterValue(PARAMETER_CA + index, muxD);
+    setUncalibratedParameterValue(PARAMETER_DA + index, muxE);
 }
 
 extern "C"
@@ -359,7 +362,9 @@ extern "C"
                     configuration.params_min[i] = 0;
                     configuration.params_max[i] = 4095;
                 }
-                setCalibratedParameterValue(i, value);
+
+                // Since v2.0 we don't use parameters' calibration anymore.
+                setUncalibratedParameterValue(i, value);
             }
         }
     }

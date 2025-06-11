@@ -5,6 +5,7 @@
 
 - hardware change for fixing lowest 3 semitones of V/Oct CV (<https://github.com/Befaco/Oneiroi/issues/37>)
 - now 0v at V/Oct CV are required when entering calibration
+- removed pots and faders calibration (leave 0 as min and 4095 as max)
 
 ## 1.0.0 (2024-10-14)
 
