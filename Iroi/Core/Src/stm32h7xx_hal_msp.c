@@ -120,17 +120,19 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
     PA1     ------> ADC1_INP17
     PA2     ------> ADC1_INP14
     PA3     ------> ADC1_INP15
+    PA4     ------> ADC1_INP18
     PB1     ------> ADC1_INP5
     */
-    GPIO_InitStruct.Pin = MUX1_Pin|MUX2_Pin|REVERB_TONESIZE_CV_Pin|OSC_VOCT_CV_Pin;
+    GPIO_InitStruct.Pin = RESONATORCV_Pin|MUX_Pin|MOD_LEVEL_Pin|MOD_SPEED_Pin
+                          |FILTERCV_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = MUX3_Pin;
+    GPIO_InitStruct.Pin = INLEVELLEDGREEN_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(MUX3_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_Init(INLEVELLEDGREEN_GPIO_Port, &GPIO_InitStruct);
 
     /* ADC1 DMA Init */
     /* ADC1 Init */
@@ -185,7 +187,6 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
     __HAL_RCC_GPIOF_CLK_ENABLE();
     __HAL_RCC_GPIOC_CLK_ENABLE();
     /**ADC3 GPIO Configuration
-    PF7     ------> ADC3_INP3
     PF8     ------> ADC3_INP7
     PF9     ------> ADC3_INP2
     PF10     ------> ADC3_INP6
@@ -193,15 +194,15 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
     PC2_C     ------> ADC3_INP0
     PC3_C     ------> ADC3_INP1
     */
-    GPIO_InitStruct.Pin = LOOPER_START_CV_Pin|LOOPER_LENGTH_CV_Pin|LOOPER_SPEED_CV_Pin|DELAY_TIME_CV_Pin;
+    GPIO_InitStruct.Pin = DELAYCV_Pin|REVERBCV_Pin|REVERB_VOL2_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = RESONATOR_HARMONY_CV_Pin;
+    GPIO_InitStruct.Pin = DELAY_VOL2_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(RESONATOR_HARMONY_CV_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_Init(DELAY_VOL2_GPIO_Port, &GPIO_InitStruct);
 
     HAL_SYSCFG_AnalogSwitchConfig(SYSCFG_SWITCH_PC2, SYSCFG_SWITCH_PC2_OPEN);
 
@@ -257,11 +258,13 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* hadc)
     PA1     ------> ADC1_INP17
     PA2     ------> ADC1_INP14
     PA3     ------> ADC1_INP15
+    PA4     ------> ADC1_INP18
     PB1     ------> ADC1_INP5
     */
-    HAL_GPIO_DeInit(GPIOA, MUX1_Pin|MUX2_Pin|REVERB_TONESIZE_CV_Pin|OSC_VOCT_CV_Pin);
+    HAL_GPIO_DeInit(GPIOA, RESONATORCV_Pin|MUX_Pin|MOD_LEVEL_Pin|MOD_SPEED_Pin
+                          |FILTERCV_Pin);
 
-    HAL_GPIO_DeInit(MUX3_GPIO_Port, MUX3_Pin);
+    HAL_GPIO_DeInit(INLEVELLEDGREEN_GPIO_Port, INLEVELLEDGREEN_Pin);
 
     /* ADC1 DMA DeInit */
     HAL_DMA_DeInit(hadc->DMA_Handle);
@@ -281,7 +284,6 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* hadc)
     __HAL_RCC_ADC3_CLK_DISABLE();
 
     /**ADC3 GPIO Configuration
-    PF7     ------> ADC3_INP3
     PF8     ------> ADC3_INP7
     PF9     ------> ADC3_INP2
     PF10     ------> ADC3_INP6
@@ -289,9 +291,9 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* hadc)
     PC2_C     ------> ADC3_INP0
     PC3_C     ------> ADC3_INP1
     */
-    HAL_GPIO_DeInit(GPIOF, LOOPER_START_CV_Pin|LOOPER_LENGTH_CV_Pin|LOOPER_SPEED_CV_Pin|DELAY_TIME_CV_Pin);
+    HAL_GPIO_DeInit(GPIOF, DELAYCV_Pin|REVERBCV_Pin|REVERB_VOL2_Pin);
 
-    HAL_GPIO_DeInit(RESONATOR_HARMONY_CV_GPIO_Port, RESONATOR_HARMONY_CV_Pin);
+    HAL_GPIO_DeInit(DELAY_VOL2_GPIO_Port, DELAY_VOL2_Pin);
 
     /* ADC3 DMA DeInit */
     HAL_DMA_DeInit(hadc->DMA_Handle);
@@ -324,13 +326,12 @@ void HAL_DAC_MspInit(DAC_HandleTypeDef* hdac)
 
     __HAL_RCC_GPIOA_CLK_ENABLE();
     /**DAC1 GPIO Configuration
-    PA4     ------> DAC1_OUT1
     PA5     ------> DAC1_OUT2
     */
-    GPIO_InitStruct.Pin = INLEVELGREEN_LED_Pin|MOD_LED_Pin;
+    GPIO_InitStruct.Pin = MODLED_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    HAL_GPIO_Init(MODLED_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN DAC1_MspInit 1 */
 
@@ -356,10 +357,9 @@ void HAL_DAC_MspDeInit(DAC_HandleTypeDef* hdac)
     __HAL_RCC_DAC12_CLK_DISABLE();
 
     /**DAC1 GPIO Configuration
-    PA4     ------> DAC1_OUT1
     PA5     ------> DAC1_OUT2
     */
-    HAL_GPIO_DeInit(GPIOA, INLEVELGREEN_LED_Pin|MOD_LED_Pin);
+    HAL_GPIO_DeInit(MODLED_GPIO_Port, MODLED_Pin);
 
   /* USER CODE BEGIN DAC1_MspDeInit 1 */
 

@@ -1,5 +1,5 @@
 #!/bin/bash
-PROJECT=Oneiroi
+PROJECT=Iroi
 HARDWARE=1,0,0
 #CONFIG=Debug
 CONFIG=Release

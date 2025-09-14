@@ -1,54 +1,6 @@
 
-# Oneiroi firmware changelog
+# Iroi firmware changelog
 
-## 2.0.0 (2025-03-29)
+## 1.0.0 (2025-xx-xx)
 
-- hardware change for fixing lowest 3 semitones of V/Oct CV (<https://github.com/Befaco/Oneiroi/issues/37>)
-- now 0v at V/Oct CV are required when entering calibration
-- removed pots and faders calibration (leave 0 as min and 4095 as max)
-
-## 1.0.0 (2024-10-14)
-
-- removed version number :)
-
-## 0.9.81 (2024-04-25)
-
-- fixed wrong CV calibration
-
-## 0.9.80 (2024-04-13)
-
-- fixed random mode calibration
-- calibration of pitch and looper speed center positions (<https://github.com/Befaco/Oneiroi/issues/17>)
-
-## 0.9.79 (2024-04-10)
-
-- allow calibrating without the need to erase patch and storage (<https://github.com/Befaco/Oneiroi/issues/19>)
-- using C2, C5 and C8 as the three calibration points (<https://github.com/Befaco/Oneiroi/issues/17>)
-- disabled USB audio (<https://github.com/Befaco/Oneiroi/issues/20>)
-- using correct firmware version in device.h (<https://github.com/Befaco/Oneiroi/issues/32>)
-
-## 0.9.78 (2024-04-05)
-
-- fixed problems with CV's (<https://github.com/Befaco/Oneiroi/issues/22>)
-
-## 0.9.77 (2024-04-04)
-
-- three points v/oct calibration (<https://github.com/Befaco/Oneiroi/issues/17>)
-
-## 0.9.76 (2024-03-31)
-
-- changed both pre/post switch and record button to GPIO_INPUT (were EXTI), also
-  fixing <https://github.com/Befaco/Oneiroi/issues/12>
-
-## 0.9.75 (2024-03-29)
-
-- fixed noisy faders with sine waves (<https://github.com/Befaco/Oneiroi/issues/13>)
-
-## 0.9.74 (2024-03-24)
-
-- fixed saving to flash
-
-## 0.9.73
-
-- reactivated bootloader
-- README
+- first release

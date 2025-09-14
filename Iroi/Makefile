@@ -1,4 +1,4 @@
-PROJECT = Oneiroi
+PROJECT = Iroi
 BUILDROOT = .
 OPENWARE ?= $(BUILDROOT)/..
 

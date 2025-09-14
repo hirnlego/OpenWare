@@ -74,6 +74,9 @@ biosignals: ## build BioSignals project
 oneiroi: ## build Oneiroi project
 	@$(MAKE) -C Oneiroi all
 
+iroi: ## build Iroi project
+	@$(MAKE) -C Iroi all
+
 clean: ## remove generated files
 	@$(MAKE) -C Tesseract clean
 	@$(MAKE) -C Witch clean
@@ -96,6 +99,7 @@ clean: ## remove generated files
 	@$(MAKE) -C MidiBoot2 clean
 	@$(MAKE) -C MidiBoot3 clean
 	@$(MAKE) -C Oneiroi clean
+	@$(MAKE) -C Iroi clean
 
 docs: ## generate HTML documentation
 	@doxygen Doxyfile

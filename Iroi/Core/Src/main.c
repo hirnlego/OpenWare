@@ -376,7 +376,7 @@ static void MX_ADC1_Init(void)
   hadc1.Init.EOCSelection = ADC_EOC_SEQ_CONV;
   hadc1.Init.LowPowerAutoWait = DISABLE;
   hadc1.Init.ContinuousConvMode = ENABLE;
-  hadc1.Init.NbrOfConversion = 5;
+  hadc1.Init.NbrOfConversion = 6;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
@@ -446,6 +446,15 @@ static void MX_ADC1_Init(void)
   {
     Error_Handler();
   }
+
+  /** Configure Regular Channel
+  */
+  sConfig.Channel = ADC_CHANNEL_18;
+  sConfig.Rank = ADC_REGULAR_RANK_6;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
   /* USER CODE BEGIN ADC1_Init 2 */
 
   /* USER CODE END ADC1_Init 2 */
@@ -479,7 +488,7 @@ static void MX_ADC3_Init(void)
   hadc3.Init.EOCSelection = ADC_EOC_SEQ_CONV;
   hadc3.Init.LowPowerAutoWait = DISABLE;
   hadc3.Init.ContinuousConvMode = ENABLE;
-  hadc3.Init.NbrOfConversion = 7;
+  hadc3.Init.NbrOfConversion = 6;
   hadc3.Init.DiscontinuousConvMode = DISABLE;
   hadc3.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc3.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
@@ -535,7 +544,6 @@ static void MX_ADC3_Init(void)
 
   /** Configure Regular Channel
   */
-  sConfig.Channel = ADC_CHANNEL_3;
   sConfig.Rank = ADC_REGULAR_RANK_5;
   if (HAL_ADC_ConfigChannel(&hadc3, &sConfig) != HAL_OK)
   {
@@ -546,15 +554,6 @@ static void MX_ADC3_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_7;
   sConfig.Rank = ADC_REGULAR_RANK_6;
-  if (HAL_ADC_ConfigChannel(&hadc3, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** Configure Regular Channel
-  */
-  sConfig.Channel = ADC_CHANNEL_2;
-  sConfig.Rank = ADC_REGULAR_RANK_7;
   if (HAL_ADC_ConfigChannel(&hadc3, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -591,20 +590,13 @@ static void MX_DAC1_Init(void)
     Error_Handler();
   }
 
-  /** DAC channel OUT1 config
+  /** DAC channel OUT2 config
   */
   sConfig.DAC_SampleAndHold = DAC_SAMPLEANDHOLD_DISABLE;
   sConfig.DAC_Trigger = DAC_TRIGGER_NONE;
   sConfig.DAC_OutputBuffer = DAC_OUTPUTBUFFER_ENABLE;
   sConfig.DAC_ConnectOnChipPeripheral = DAC_CHIPCONNECT_DISABLE;
   sConfig.DAC_UserTrimming = DAC_TRIMMING_FACTORY;
-  if (HAL_DAC_ConfigChannel(&hdac1, &sConfig, DAC_CHANNEL_1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** DAC channel OUT2 config
-  */
   if (HAL_DAC_ConfigChannel(&hdac1, &sConfig, DAC_CHANNEL_2) != HAL_OK)
   {
     Error_Handler();
@@ -1004,86 +996,99 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, EXTSPI_nCS_Pin|FLASH_HOLD_Pin|FLASH_nCS_Pin|RECORD_BUTTON_LED_Pin
-                          |MUX_A_Pin|MUX_B_Pin|CU_UP_LED_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, RND_MAP_BUTTONLED_Pin|EXTSPI_nCS_Pin|FLASH_HOLD_Pin|FLASH_nCS_Pin
+                          |MOD_AMT_BUTTON_LED_2_Pin|MUX_A_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, FLASH_WP_Pin|CU_DOWN_LED_Pin|CS_CS_Pin|CS_RST_Pin
-                          |USB_HOST_PWR_EN_Pin|SYNC_LED_Pin|SHIFT_LED_Pin|MOD_CV_GREEN_LED_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, FLASH_WP_Pin|CS_CS_Pin|CS_RST_Pin|USB_HOST_PWR_EN_Pin
+                          |MOD_AMT_BUTTON_LED_Pin|SYNCLED_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, RANDOM_BUTTON_LED_Pin|INLEVELRED_LED_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(SHIFT_BUTTONLED_GPIO_Port, SHIFT_BUTTONLED_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(MOD_CV_RED_LED_GPIO_Port, MOD_CV_RED_LED_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, MUX_B_Pin|MUX_C_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(MUX_C_GPIO_Port, MUX_C_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOG, INLEVELREDLED_Pin|RANDOM_BUTTONLED_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : RANDOM_AMOUNT_SWITCH1_Pin RANDOM_AMOUNT_SWITCH2_Pin PRE_POST_SWITCH_Pin */
-  GPIO_InitStruct.Pin = RANDOM_AMOUNT_SWITCH1_Pin|RANDOM_AMOUNT_SWITCH2_Pin|PRE_POST_SWITCH_Pin;
+  /*Configure GPIO pin : RND_MAP_BUTTON_Pin */
+  GPIO_InitStruct.Pin = RND_MAP_BUTTON_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  HAL_GPIO_Init(RND_MAP_BUTTON_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : EXTSPI_nCS_Pin FLASH_HOLD_Pin FLASH_nCS_Pin RECORD_BUTTON_LED_Pin
-                           MUX_A_Pin MUX_B_Pin CU_UP_LED_Pin */
-  GPIO_InitStruct.Pin = EXTSPI_nCS_Pin|FLASH_HOLD_Pin|FLASH_nCS_Pin|RECORD_BUTTON_LED_Pin
-                          |MUX_A_Pin|MUX_B_Pin|CU_UP_LED_Pin;
+  /*Configure GPIO pins : RND_MAP_BUTTONLED_Pin EXTSPI_nCS_Pin FLASH_HOLD_Pin FLASH_nCS_Pin
+                           MOD_AMT_BUTTON_LED_2_Pin MUX_A_Pin */
+  GPIO_InitStruct.Pin = RND_MAP_BUTTONLED_Pin|EXTSPI_nCS_Pin|FLASH_HOLD_Pin|FLASH_nCS_Pin
+                          |MOD_AMT_BUTTON_LED_2_Pin|MUX_A_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PF6 */
-  GPIO_InitStruct.Pin = GPIO_PIN_6;
+  /*Configure GPIO pins : PF6 PF7 */
+  GPIO_InitStruct.Pin = GPIO_PIN_6|GPIO_PIN_7;
   GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : FLASH_WP_Pin CU_DOWN_LED_Pin CS_CS_Pin CS_RST_Pin
-                           USB_HOST_PWR_EN_Pin SYNC_LED_Pin SHIFT_LED_Pin MOD_CV_GREEN_LED_Pin */
-  GPIO_InitStruct.Pin = FLASH_WP_Pin|CU_DOWN_LED_Pin|CS_CS_Pin|CS_RST_Pin
-                          |USB_HOST_PWR_EN_Pin|SYNC_LED_Pin|SHIFT_LED_Pin|MOD_CV_GREEN_LED_Pin;
+  /*Configure GPIO pins : FLASH_WP_Pin CS_CS_Pin CS_RST_Pin USB_HOST_PWR_EN_Pin
+                           MOD_AMT_BUTTON_LED_Pin SYNCLED_Pin */
+  GPIO_InitStruct.Pin = FLASH_WP_Pin|CS_CS_Pin|CS_RST_Pin|USB_HOST_PWR_EN_Pin
+                          |MOD_AMT_BUTTON_LED_Pin|SYNCLED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : USB_HOST_PWR_FAULT_Pin MOD_CV_BUTTON_Pin */
-  GPIO_InitStruct.Pin = USB_HOST_PWR_FAULT_Pin|MOD_CV_BUTTON_Pin;
+  /*Configure GPIO pins : PB2 PB9 */
+  GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_9;
+  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : USB_HOST_PWR_FAULT_Pin MOD_AMT_BUTTON_Pin */
+  GPIO_InitStruct.Pin = USB_HOST_PWR_FAULT_Pin|MOD_AMT_BUTTON_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : RECORD_GATE_Pin SYNC_GATE_Pin */
-  GPIO_InitStruct.Pin = RECORD_GATE_Pin|SYNC_GATE_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+  /*Configure GPIO pin : SHIFT_BUTTONLED_Pin */
+  GPIO_InitStruct.Pin = SHIFT_BUTTONLED_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(SHIFT_BUTTONLED_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : RECORD_BUTTON_Pin SHIFT_BUTTON_Pin */
-  GPIO_InitStruct.Pin = RECORD_BUTTON_Pin|SHIFT_BUTTON_Pin;
+  /*Configure GPIO pin : SHIFT_BUTTON_Pin */
+  GPIO_InitStruct.Pin = SHIFT_BUTTON_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+  HAL_GPIO_Init(SHIFT_BUTTON_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : SYNCIN_Pin */
+  GPIO_InitStruct.Pin = SYNCIN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(SYNCIN_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PG2 PG3 PG6 PG7
-                           PG10 */
+                           PG10 PG11 */
   GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_6|GPIO_PIN_7
-                          |GPIO_PIN_10;
+                          |GPIO_PIN_10|GPIO_PIN_11;
   GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PC7 */
-  GPIO_InitStruct.Pin = GPIO_PIN_7;
+  /*Configure GPIO pins : PC7 PC10 PC11 PC12 */
+  GPIO_InitStruct.Pin = GPIO_PIN_7|GPIO_PIN_10|GPIO_PIN_11|GPIO_PIN_12;
   GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : RANDOM_BUTTON_LED_Pin INLEVELRED_LED_Pin */
-  GPIO_InitStruct.Pin = RANDOM_BUTTON_LED_Pin|INLEVELRED_LED_Pin;
+  /*Configure GPIO pins : MUX_B_Pin MUX_C_Pin */
+  GPIO_InitStruct.Pin = MUX_B_Pin|MUX_C_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -1095,37 +1100,30 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PD3 PD4 PD5 */
-  GPIO_InitStruct.Pin = GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_5;
+  /*Configure GPIO pins : PD2 PD3 PD4 PD5 */
+  GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_5;
   GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : MOD_CV_RED_LED_Pin */
-  GPIO_InitStruct.Pin = MOD_CV_RED_LED_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(MOD_CV_RED_LED_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : MUX_C_Pin */
-  GPIO_InitStruct.Pin = MUX_C_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(MUX_C_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : SSWT_SWITCH_Pin RANDOM_BUTTON_Pin */
-  GPIO_InitStruct.Pin = SSWT_SWITCH_Pin|RANDOM_BUTTON_Pin;
+  /*Configure GPIO pin : RANDOMGATEIN_Pin */
+  GPIO_InitStruct.Pin = RANDOMGATEIN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(RANDOMGATEIN_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : INLEVELREDLED_Pin RANDOM_BUTTONLED_Pin */
+  GPIO_InitStruct.Pin = INLEVELREDLED_Pin|RANDOM_BUTTONLED_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : RANDOM_GATE_Pin */
-  GPIO_InitStruct.Pin = RANDOM_GATE_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(RANDOM_GATE_GPIO_Port, &GPIO_InitStruct);
+  /*Configure GPIO pin : RANDOM_BUTTON_Pin */
+  GPIO_InitStruct.Pin = RANDOM_BUTTON_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(RANDOM_BUTTON_GPIO_Port, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI15_10_IRQn, 15, 0);

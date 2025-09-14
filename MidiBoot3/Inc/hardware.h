@@ -55,6 +55,19 @@
   #define LED2_Pin GPIO_PIN_8
   #define LED2_GPIO_Port GPIOA
   #define USE_SPI_FLASH
+#elif defined OWL_IROI
+  #define HARDWARE_VERSION    "OWL Iroi Boot"
+  #define HARDWARE_ID         IROI_HARDWARE
+  #define APPLICATION_ADDRESS 0x08020000
+  //#define USE_BOOT1_PIN
+  #define BOOT1_Pin GPIO_PIN_2
+  #define BOOT1_GPIO_Port GPIOD
+  #define USE_LED
+  #define LED1_Pin GPIO_PIN_9
+  #define LED1_GPIO_Port GPIOC
+  #define LED2_Pin GPIO_PIN_8
+  #define LED2_GPIO_Port GPIOA
+  #define USE_SPI_FLASH
   #define SPI_FLASH_HANDLE             hspi1
 #else
   #error Invalid configuration
