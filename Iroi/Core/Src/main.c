@@ -544,6 +544,7 @@ static void MX_ADC3_Init(void)
 
   /** Configure Regular Channel
   */
+  sConfig.Channel = ADC_CHANNEL_2;
   sConfig.Rank = ADC_REGULAR_RANK_5;
   if (HAL_ADC_ConfigChannel(&hadc3, &sConfig) != HAL_OK)
   {
@@ -1000,8 +1001,8 @@ static void MX_GPIO_Init(void)
                           |MOD_AMT_BUTTON_LED_2_Pin|MUX_A_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, FLASH_WP_Pin|CS_CS_Pin|CS_RST_Pin|USB_HOST_PWR_EN_Pin
-                          |MOD_AMT_BUTTON_LED_Pin|SYNCLED_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, FLASH_WP_Pin|IN_DETEC_Pin|CS_CS_Pin|CS_RST_Pin
+                          |USB_HOST_PWR_EN_Pin|MOD_AMT_BUTTON_LED_Pin|SYNCLED_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(SHIFT_BUTTONLED_GPIO_Port, SHIFT_BUTTONLED_Pin, GPIO_PIN_RESET);
@@ -1033,19 +1034,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : FLASH_WP_Pin CS_CS_Pin CS_RST_Pin USB_HOST_PWR_EN_Pin
-                           MOD_AMT_BUTTON_LED_Pin SYNCLED_Pin */
-  GPIO_InitStruct.Pin = FLASH_WP_Pin|CS_CS_Pin|CS_RST_Pin|USB_HOST_PWR_EN_Pin
-                          |MOD_AMT_BUTTON_LED_Pin|SYNCLED_Pin;
+  /*Configure GPIO pins : FLASH_WP_Pin IN_DETEC_Pin CS_CS_Pin CS_RST_Pin
+                           USB_HOST_PWR_EN_Pin MOD_AMT_BUTTON_LED_Pin SYNCLED_Pin */
+  GPIO_InitStruct.Pin = FLASH_WP_Pin|IN_DETEC_Pin|CS_CS_Pin|CS_RST_Pin
+                          |USB_HOST_PWR_EN_Pin|MOD_AMT_BUTTON_LED_Pin|SYNCLED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : PB2 PB9 */
-  GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_9;
-  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : USB_HOST_PWR_FAULT_Pin MOD_AMT_BUTTON_Pin */
@@ -1108,7 +1103,7 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin : RANDOMGATEIN_Pin */
   GPIO_InitStruct.Pin = RANDOMGATEIN_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(RANDOMGATEIN_GPIO_Port, &GPIO_InitStruct);
 
@@ -1124,6 +1119,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(RANDOM_BUTTON_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PB9 */
+  GPIO_InitStruct.Pin = GPIO_PIN_9;
+  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI15_10_IRQn, 15, 0);

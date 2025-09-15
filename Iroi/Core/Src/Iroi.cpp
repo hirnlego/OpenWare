@@ -101,7 +101,6 @@ static bool shiftButtonState = false;
 static bool modCvButtonState = false;
 static uint16_t mux_values[NOF_MUX_VALUES] DMA_RAM = {};
 
-Pin randomGate(RANDOMGATEIN_GPIO_Port, RANDOMGATEIN_Pin);
 Pin randomButton(RANDOM_BUTTON_GPIO_Port, RANDOM_BUTTON_Pin);
 Pin randomMapButton(RND_MAP_BUTTON_GPIO_Port, RND_MAP_BUTTON_Pin);
 Pin shiftButton(SHIFT_BUTTON_GPIO_Port, SHIFT_BUTTON_Pin);
@@ -173,7 +172,7 @@ void readMux(uint8_t index, uint16_t *mux_values)
     uint16_t muxC = 4095 - mux_values[MUX_C]; // MOD_LEVEL
     uint16_t muxD = 4095 - mux_values[MUX_D]; // MOD_SPEED
     uint16_t muxE = 4095 - mux_values[MUX_E]; // FILTERCV
-    uint16_t muxF = 4095 - mux_values[MUX_F]; // INLEVELGREEN_LED
+    uint16_t muxF = 4095 - mux_values[MUX_F]; // INLEVELGREEN_LED // This will be DAC in rev 2 
 
     setParameterValue(RESONATOCV, muxA);
     setParameterValue(PARAMETER_BA + index, muxB);
@@ -240,7 +239,7 @@ void readGpio()
     }
 
     setAnalogValue(MOD_LED, getParameterValue(MOD));
-    setAnalogValue(INLEVELGREEN_LED, getParameterValue(INLEVELGREEN));
+    //setAnalogValue(INLEVELGREEN_LED, getParameterValue(INLEVELGREEN));
 
 #ifdef DEBUG
 
@@ -313,7 +312,7 @@ void setAnalogValue(uint8_t ch, int16_t value)
     case INLEVELLEDGREEN:
         HAL_DAC_SetValue(&DAC_HANDLE, DAC_CHANNEL_1, DAC_ALIGN_12B_R, __USAT(value, 12));
         break;
-    case MOD_LED:
+    case MOD:
         HAL_DAC_SetValue(&DAC_HANDLE, DAC_CHANNEL_2, DAC_ALIGN_12B_R, 4095 - __USAT(value, 12)); // Inverted
         break;
     }
