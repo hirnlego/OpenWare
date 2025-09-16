@@ -36,6 +36,7 @@
 #define SYNC_GATE BUTTON_4
 #define INLEVELRED BUTTON_5
 #define SHIFT_BUTTON BUTTON_6
+#define IN_DETEC BUTTON_7
 
 // ADC1
 #define RESONATORCV PARAMETER_A
@@ -340,6 +341,9 @@ void setGateValue(uint8_t ch, int16_t value)
         break;
     case MOD_CV_RED:
         setLed(MOD_CV_RED_LED, value);
+        break;
+    case IN_DETEC:
+        HAL_GPIO_WritePin(IN_DETEC_GPIO_Port, IN_DETEC_Pin, rgb == NO_COLOUR ? GPIO_PIN_SET : GPIO_PIN_RESET); // Inverted
         break;
     }
 }
