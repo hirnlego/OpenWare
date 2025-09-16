@@ -220,6 +220,10 @@ void readGpio()
     {
         randomMapButtonState = !randomMapButton.get();
         setButtonValue(RANDOM_MAP, randomMapButtonState);
+        if (CONFIG_MODE_OPTIONS == configMode && randomMapButtonState)
+        {
+            configuration.mod_attenuverters = !configuration.mod_attenuverters;
+        }
     }
     if (shiftButtonState != !shiftButton.get()) // Inverted: pressed = false
     {
@@ -360,10 +364,10 @@ void setLed(uint8_t led, uint32_t rgb)
         HAL_GPIO_WritePin(SHIFT_BUTTONLED_GPIO_Port, SHIFT_BUTTONLED_Pin, rgb == NO_COLOUR ? GPIO_PIN_RESET : GPIO_PIN_SET);
         break;
     case MOD_CV_GREEN_LED:
-        HAL_GPIO_WritePin(MOD_AMT_BUTTON_LED_GPIO_Port, MOD_AMT_BUTTON_LED_Pin, rgb == NO_COLOUR ? GPIO_PIN_RESET : GPIO_PIN_SET);
+        HAL_GPIO_WritePin(MOD_AMT_BUTTON_LED_2_GPIO_Port, MOD_AMT_BUTTON_LED_2_Pin, rgb == NO_COLOUR ? GPIO_PIN_RESET : GPIO_PIN_SET);
         break;
     case MOD_CV_RED_LED:
-        HAL_GPIO_WritePin(MOD_AMT_BUTTON_LED_2_GPIO_Port, MOD_AMT_BUTTON_LED_2_Pin, rgb == NO_COLOUR ? GPIO_PIN_RESET : GPIO_PIN_SET);
+        HAL_GPIO_WritePin(MOD_AMT_BUTTON_LED_GPIO_Port, MOD_AMT_BUTTON_LED_Pin, rgb == NO_COLOUR ? GPIO_PIN_RESET : GPIO_PIN_SET);
         break;
     }
 }
