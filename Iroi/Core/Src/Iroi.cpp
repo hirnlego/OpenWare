@@ -38,7 +38,7 @@
 #define SHIFT_BUTTON BUTTON_6
 
 // ADC1
-#define RESONATOCV PARAMETER_A
+#define RESONATORCV PARAMETER_A
 #define MOD_LEVEL PARAMETER_B
 #define MOD_SPEED PARAMETER_C
 #define FILTERCV PARAMETER_D
@@ -83,7 +83,6 @@ enum ConfigMode
 
 struct Configuration
 {
-    bool soft_takeover;
     bool mod_attenuverters;
     bool cv_attenuverters;
     int revision;
@@ -141,7 +140,6 @@ void loadConfiguration()
 
         // Provide sensible default values.
         configuration = {
-            false, // soft_takeover
             false, // mod_attenuverters
             false, // cv_attenuverters
             0, // revision
@@ -149,7 +147,7 @@ void loadConfiguration()
     }
 }
 
-void setParameterValue(uint8_t pid, int16_t value)
+void setUncalibratedParameterValue(uint8_t pid, int16_t value)
 {
     int16_t previous = getParameterValue(pid);
     // IIR exponential filter with lambda 0.75: y[n] = 0.75*y[n-1] + 0.25*x[n]
@@ -168,18 +166,18 @@ void setMux(uint8_t index)
 void readMux(uint8_t index, uint16_t *mux_values)
 {
     uint16_t muxA = 4095 - mux_values[MUX_A]; // RESONATORCV
-    uint16_t muxB = 4095 - mux_values[MUX_B]; // Multiplexed values
+    uint16_t muxB = 4095 - mux_values[MUX_B]; // Multiplexed params
     uint16_t muxC = 4095 - mux_values[MUX_C]; // MOD_LEVEL
     uint16_t muxD = 4095 - mux_values[MUX_D]; // MOD_SPEED
     uint16_t muxE = 4095 - mux_values[MUX_E]; // FILTERCV
     uint16_t muxF = 4095 - mux_values[MUX_F]; // INLEVELGREEN_LED // This will be DAC in rev 2 
 
-    setParameterValue(RESONATOCV, muxA);
-    setParameterValue(PARAMETER_BA + index, muxB);
-    setParameterValue(MOD_LEVEL, muxC);
-    setParameterValue(MOD_SPEED, muxD);
-    setParameterValue(FILTERCV, muxE);
-    setParameterValue(INLEVELGREEN_LED, muxF);
+    setUncalibratedParameterValue(RESONATORCV, muxA);
+    setUncalibratedParameterValue(PARAMETER_BA + index, muxB);
+    setUncalibratedParameterValue(MOD_LEVEL, muxC);
+    setUncalibratedParameterValue(MOD_SPEED, muxD);
+    setUncalibratedParameterValue(FILTERCV, muxE);
+    setUncalibratedParameterValue(INLEVELGREEN_LED, muxF);
 }
 
 extern "C"
@@ -201,7 +199,7 @@ extern "C"
             for (size_t i = 0; i < NOF_ADC_VALUES; i++)
             {
                 uint16_t value = 4095 - adc_values[i];
-                setParameterValue(i, value);
+                setUncalibratedParameterValue(i, value);
             }
         }
     }
@@ -227,10 +225,6 @@ void readGpio()
     {
         shiftButtonState = !shiftButton.get();
         setButtonValue(SHIFT_BUTTON, shiftButtonState);
-        if (CONFIG_MODE_OPTIONS == configMode && shiftButtonState)
-        {
-            configuration.soft_takeover = !configuration.soft_takeover;
-        }
     }
     if (modCvButtonState != !modCvButton.get()) // Inverted: pressed = false
     {
@@ -491,7 +485,6 @@ void onLoop(void)
                 {
                     // Reset configuration before calibration.
                     configuration = {
-                        false,  // soft_takeover
                         false,  // mod_attenuverters
                         false,  // cv_attenuverters
                         0,      // revision
@@ -503,7 +496,6 @@ void onLoop(void)
                 if (CONFIG_MODE_OPTIONS)
                 {
                     readGpio();
-                    setLed(SHIFT_LED, configuration.soft_takeover);
                     setLed(RANDOM_LED, configuration.mod_attenuverters);
                     setLed(RANDOM_MAP_LED, configuration.cv_attenuverters);
                     setLed(MOD_CV_GREEN_LED, 1);
