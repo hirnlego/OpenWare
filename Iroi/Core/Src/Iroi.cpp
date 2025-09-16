@@ -343,7 +343,7 @@ void setGateValue(uint8_t ch, int16_t value)
         setLed(MOD_CV_RED_LED, value);
         break;
     case IN_DETEC:
-        HAL_GPIO_WritePin(IN_DETEC_GPIO_Port, IN_DETEC_Pin, rgb == NO_COLOUR ? GPIO_PIN_SET : GPIO_PIN_RESET); // Inverted
+        HAL_GPIO_WritePin(IN_DETEC_GPIO_Port, IN_DETEC_Pin, value ? GPIO_PIN_RESET :  GPIO_PIN_SET);
         break;
     }
 }
@@ -415,6 +415,8 @@ void onSetup()
 
     onChangePin(SYNCIN_Pin);
     onChangePin(RANDOMGATEIN_Pin);
+
+    setGateValue(IN_DETEC, 0);
 
     loadConfiguration();
 }
