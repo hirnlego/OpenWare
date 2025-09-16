@@ -27,9 +27,9 @@
 #define MOD PARAMETER_AG
 
 // GPIO
+#define MOD_CV_BUTTON PUSHBUTTON
 #define MOD_CV_GREEN GREEN_BUTTON
 #define MOD_CV_RED RED_BUTTON
-#define MOD_CV_BUTTON PUSHBUTTON
 #define RANDOM_BUTTON BUTTON_1
 #define RANDOM_MAP BUTTON_2
 #define RANDOM_GATE BUTTON_3
@@ -586,6 +586,9 @@ bool onMidiSend(uint8_t port, uint8_t status, uint8_t d1, uint8_t d2)
             break;
         case 3:
             filename = PATCH_SETTINGS_NAME ".cv";
+            break;
+        case 4:
+            filename = PATCH_SETTINGS_NAME ".rnd";
             break;
         }
 
