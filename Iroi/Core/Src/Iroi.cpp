@@ -43,8 +43,8 @@
 #define RESO_VOL2 PARAMETER_B
 #define DELAY_VOL2 PARAMETER_C
 #define REVERB_VOL2 PARAMETER_D
-#define REVERBCV PARAMETER_E
-#define DELAYCV PARAMETER_F
+#define DELAYCV PARAMETER_E
+#define REVERBCV PARAMETER_F
 
 // ADC1
 #define RESONATORCV PARAMETER_G
@@ -54,13 +54,13 @@
 #define INLEVELLEDGREEN PARAMETER_AC
 
 // ADC1 muxed (pots)
-#define FILTER_CUTOFF PARAMETER_BA
-#define FILTER_RESONANCE PARAMETER_BB
-#define RESONATOR_TUNE PARAMETER_BC
-#define RESONATOR_FEEDBACK PARAMETER_BD
+#define FILTER_CUTOFF PARAMETER_BC
+#define FILTER_RESONANCE PARAMETER_BF
+#define RESONATOR_TUNE PARAMETER_BG
+#define RESONATOR_FEEDBACK PARAMETER_BB
 #define ECHO_DENSITY PARAMETER_BE
-#define ECHO_REPEATS PARAMETER_BF
-#define AMBIENCE_SPACETIME PARAMETER_BG
+#define ECHO_REPEATS PARAMETER_BD
+#define AMBIENCE_SPACETIME PARAMETER_BA
 #define AMBIENCE_DECAY PARAMETER_BH
 
 enum leds
@@ -166,19 +166,19 @@ void setMux(uint8_t index)
 
 void readMux(uint8_t index, uint16_t *mux_values)
 {
-    uint16_t muxA = 4095 - mux_values[MUX_A]; // RESONATORCV
-    uint16_t muxB = 4095 - mux_values[MUX_B]; // Multiplexed params
-    uint16_t muxC = 4095 - mux_values[MUX_C]; // MOD_LEVEL
-    uint16_t muxD = 4095 - mux_values[MUX_D]; // MOD_SPEED
-    uint16_t muxE = 4095 - mux_values[MUX_E]; // FILTERCV
-    uint16_t muxF = 4095 - mux_values[MUX_F]; // INLEVELGREEN_LED // This will be DAC in rev 2 
+    uint16_t muxA = 4095 - mux_values[MUX_A]; // MOD_LEVEL // 14
+    uint16_t muxB = 4095 - mux_values[MUX_B]; // MOD_SPEED // 15
+    uint16_t muxC = 4095 - mux_values[MUX_C]; // RESONATOR_CV // 16
+    uint16_t muxD = 4095 - mux_values[MUX_D]; // Multiplexed params // 17
+    uint16_t muxE = 4095 - mux_values[MUX_E]; // INLEVELGREEN_LED (will be FILTERCV in rev 2) // 5
+    //uint16_t muxF = 4095 - mux_values[MUX_F]; // INLEVELGREEN_LED (will be handled by DAC in rev 2)
 
-    setUncalibratedParameterValue(RESONATORCV, muxA);
-    setUncalibratedParameterValue(PARAMETER_BA + index, muxB);
-    setUncalibratedParameterValue(MOD_LEVEL, muxC);
-    setUncalibratedParameterValue(MOD_SPEED, muxD);
-    setUncalibratedParameterValue(FILTERCV, muxE);
-    setUncalibratedParameterValue(INLEVELGREEN_LED, muxF);
+    setUncalibratedParameterValue(MOD_LEVEL, muxA);
+    setUncalibratedParameterValue(MOD_SPEED, muxB);
+    setUncalibratedParameterValue(RESONATORCV, muxC);
+    setUncalibratedParameterValue(PARAMETER_BA + index, muxD);
+    setUncalibratedParameterValue(INLEVELGREEN_LED, muxE); // Will be FILTERCV in rev 2
+    //setUncalibratedParameterValue(INLEVELGREEN_LED, muxF);
 }
 
 extern "C"
@@ -202,6 +202,13 @@ extern "C"
                 uint16_t value = 4095 - adc_values[i];
                 setUncalibratedParameterValue(i, value);
             }
+
+            // 0 > Filter fader
+            // 1 > Resonator fader
+            // 2 > Echo fader
+            // 3 > Ambience fader
+            // 4 > Echo level cv
+            // 5 > Ambience level cv
         }
     }
 }
@@ -239,49 +246,6 @@ void readGpio()
 
     setAnalogValue(MOD_LED, getParameterValue(MOD));
     //setAnalogValue(INLEVELGREEN_LED, getParameterValue(INLEVELGREEN));
-
-#ifdef DEBUG
-
-    int16_t delayCv = getParameterValue(DELAYCV);            // Ok (-5 - 10v)
-    int16_t osc2Cv = getParameterValue(OSC_DETUNE_CV);             // Ok (-5 - 10v)
-    int16_t filterCv = getParameterValue(FILTERCV);        // Ok (-5 - 10v)
-    int16_t startCv = getParameterValue(LOOPER_START_CV);          // Ok (-5 - 10v)
-    int16_t lengthCv = getParameterValue(LOOPER_LENGTH_CV);        // Ok (-5 - 10v)
-    int16_t resonatorCv = getParameterValue(RESONATORCV); // Ok (-5 - 10v)
-    int16_t speedCv = getParameterValue(LOOPER_SPEED_CV);          // Ok (-5 - 10v)
-    int16_t reverbCv = getParameterValue(REVERB_TONESIZE_CV);      // Ok (-5 - 10v)
-    int16_t vOctCv = getParameterValue(OSC_VOCT_CV);               // Ok (0 - 10v)
-
-    int16_t looperVol = getParameterValue(LOOPER_VOL);
-    int16_t reverbVol = getParameterValue(REVERB_VOL);
-
-    int16_t delayVol = getParameterValue(DELAY_VOL);
-    int16_t resoVol = getParameterValue(RESONATOR_VOL);
-    int16_t filterVol = getParameterValue(FILTER_VOL);
-    int16_t inVol = getParameterValue(IN_VOL);
-    int16_t sswtVol = getParameterValue(SSWT_VOL);
-    int16_t sineVol = getParameterValue(SINE_VOL);
-
-    int16_t speed = getParameterValue(LOOPER_SPEED);
-    int16_t resoD = getParameterValue(FILTER_RESODRIVE);
-    int16_t detune = getParameterValue(OSC_DETUNE);
-    int16_t length = getParameterValue(LOOPER_LENGTH);
-    int16_t pitch = getParameterValue(OSC_PITCH);
-    int16_t start = getParameterValue(LOOPER_START);
-    int16_t resoHarmony = getParameterValue(RESONATOR_HARMONY);
-    int16_t resoDecay = getParameterValue(RESONATOR_DECAY);
-    int16_t toneSize = getParameterValue(REVERB_TONESIZE);
-    int16_t decay = getParameterValue(REVERB_DECAY);
-    int16_t cutoff = getParameterValue(FILTER_CUTOFF);
-
-    int16_t delayF = getParameterValue(DELAY_FEEDBACK);
-    int16_t delayA = getParameterValue(DELAY_TIME);
-    int16_t randomMode = getParameterValue(RANDOM_MODE);
-
-    int16_t modAmount = getParameterValue(MOD_LEVEL);
-    int16_t modFreq = getParameterValue(MOD_FREQ);
-
-#endif
 }
 
 void onChangePin(uint16_t pin)

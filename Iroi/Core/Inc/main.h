@@ -128,8 +128,6 @@ void Error_Handler(void);
 #define MOD_LEVEL_GPIO_Port GPIOA
 #define MOD_SPEED_Pin GPIO_PIN_3
 #define MOD_SPEED_GPIO_Port GPIOA
-#define FILTERCV_Pin GPIO_PIN_4
-#define FILTERCV_GPIO_Port GPIOA
 #define MODLED_Pin GPIO_PIN_5
 #define MODLED_GPIO_Port GPIOA
 #define FLASH_MISO_Pin GPIO_PIN_6
@@ -142,8 +140,8 @@ void Error_Handler(void);
 #define FLASH_nCS_GPIO_Port GPIOC
 #define FLASH_WP_Pin GPIO_PIN_0
 #define FLASH_WP_GPIO_Port GPIOB
-#define INLEVELLEDGREEN_Pin GPIO_PIN_1
-#define INLEVELLEDGREEN_GPIO_Port GPIOB
+#define FILTERCV_Pin GPIO_PIN_1
+#define FILTERCV_GPIO_Port GPIOB
 #define IN_DETEC_Pin GPIO_PIN_2
 #define IN_DETEC_GPIO_Port GPIOB
 #define CS_CS_Pin GPIO_PIN_10

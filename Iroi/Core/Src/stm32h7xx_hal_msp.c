@@ -120,19 +120,17 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
     PA1     ------> ADC1_INP17
     PA2     ------> ADC1_INP14
     PA3     ------> ADC1_INP15
-    PA4     ------> ADC1_INP18
     PB1     ------> ADC1_INP5
     */
-    GPIO_InitStruct.Pin = RESONATORCV_Pin|MUX_Pin|MOD_LEVEL_Pin|MOD_SPEED_Pin
-                          |FILTERCV_Pin;
+    GPIO_InitStruct.Pin = RESONATORCV_Pin|MUX_Pin|MOD_LEVEL_Pin|MOD_SPEED_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = INLEVELLEDGREEN_Pin;
+    GPIO_InitStruct.Pin = FILTERCV_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(INLEVELLEDGREEN_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_Init(FILTERCV_GPIO_Port, &GPIO_InitStruct);
 
     /* ADC1 DMA Init */
     /* ADC1 Init */
@@ -258,13 +256,11 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* hadc)
     PA1     ------> ADC1_INP17
     PA2     ------> ADC1_INP14
     PA3     ------> ADC1_INP15
-    PA4     ------> ADC1_INP18
     PB1     ------> ADC1_INP5
     */
-    HAL_GPIO_DeInit(GPIOA, RESONATORCV_Pin|MUX_Pin|MOD_LEVEL_Pin|MOD_SPEED_Pin
-                          |FILTERCV_Pin);
+    HAL_GPIO_DeInit(GPIOA, RESONATORCV_Pin|MUX_Pin|MOD_LEVEL_Pin|MOD_SPEED_Pin);
 
-    HAL_GPIO_DeInit(INLEVELLEDGREEN_GPIO_Port, INLEVELLEDGREEN_Pin);
+    HAL_GPIO_DeInit(FILTERCV_GPIO_Port, FILTERCV_Pin);
 
     /* ADC1 DMA DeInit */
     HAL_DMA_DeInit(hadc->DMA_Handle);
