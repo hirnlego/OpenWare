@@ -23,57 +23,53 @@
 
 #define PATCH_RESET_COUNTER (500 / MAIN_LOOP_SLEEP_MS)
 
+#define MAP_SELECTOR PARAMETER_AE
 #define INLEVELGREEN PARAMETER_AF
-#define MOD PARAMETER_AG
+#define MOD          PARAMETER_AG
 
 // GPIO
-#define MOD_CV_BUTTON PUSHBUTTON
-#define MOD_CV_GREEN GREEN_BUTTON
-#define MOD_CV_RED RED_BUTTON
 #define RANDOM_BUTTON BUTTON_1
-#define RANDOM_MAP BUTTON_2
-#define RANDOM_GATE BUTTON_3
-#define SYNC_GATE BUTTON_4
-#define INLEVELRED BUTTON_5
-#define SHIFT_BUTTON BUTTON_6
-#define IN_DETEC BUTTON_7
+#define MAP_BUTTON    BUTTON_2
+#define RANDOM_GATE   BUTTON_3
+#define SYNC_GATE     BUTTON_4
+#define INLEVELRED    BUTTON_5
+#define SHIFT_BUTTON  BUTTON_6
+#define IN_DETEC      BUTTON_7
 
 // ADC3
-#define FILTER_VOL2 PARAMETER_A
-#define RESO_VOL2 PARAMETER_B
-#define DELAY_VOL2 PARAMETER_C
-#define REVERB_VOL2 PARAMETER_D
-#define DELAYCV PARAMETER_E
-#define REVERBCV PARAMETER_F
+#define FILTER_LEVEL  PARAMETER_A
+#define RESO_LEVEL    PARAMETER_B
+#define DELAY_LEVEL   PARAMETER_C
+#define REVERB_LEVEL  PARAMETER_D
+#define FILTER_CUTOFF PARAMETER_E
+#define DELAYCV       PARAMETER_F
+#define REVERBCV      PARAMETER_G
 
 // ADC1
-#define RESONATORCV PARAMETER_G
-#define MOD_LEVEL PARAMETER_H
-#define MOD_SPEED PARAMETER_AA
-#define FILTERCV PARAMETER_AB
-#define INLEVELLEDGREEN PARAMETER_AC
+#define RESONATORCV     PARAMETER_H
+#define MOD_LEVEL       PARAMETER_AA
+#define MOD_SPEED       PARAMETER_AB
+#define FILTERCV        PARAMETER_AC
+#define INLEVELLEDGREEN PARAMETER_AD
 
 // ADC1 muxed (pots)
-#define FILTER_CUTOFF PARAMETER_BC
-#define FILTER_RESONANCE PARAMETER_BF
-#define RESONATOR_TUNE PARAMETER_BG
+#define FILTER_RESONANCE   PARAMETER_BF
+#define RESONATOR_TUNE     PARAMETER_BG
 #define RESONATOR_FEEDBACK PARAMETER_BB
-#define ECHO_DENSITY PARAMETER_BE
-#define ECHO_REPEATS PARAMETER_BD
+#define ECHO_DENSITY       PARAMETER_BE
+#define ECHO_REPEATS       PARAMETER_BD
 #define AMBIENCE_SPACETIME PARAMETER_BA
-#define AMBIENCE_DECAY PARAMETER_BH
+#define AMBIENCE_DECAY     PARAMETER_BH
 
 enum leds
 {
-    RANDOM_LED = 1,
-    RANDOM_MAP_LED,
+    RANDOM_BUTTON_LED = 1,
+    MAP_BUTTON_LED,
     SYNC_LED,
     INLEVELRED_LED,
     INLEVELGREEN_LED,
     MOD_LED,
     SHIFT_LED,
-    MOD_CV_GREEN_LED,
-    MOD_CV_RED_LED,
 };
 
 enum ConfigMode
@@ -96,15 +92,15 @@ ConfigMode configMode = CONFIG_MODE_NONE;
 bool needsConfiguration = false;
 
 static bool randomButtonState = false;
-static bool randomMapButtonState = false;
+static bool mapButtonState = false;
 static bool shiftButtonState = false;
-static bool modCvButtonState = false;
 static uint16_t mux_values[NOF_MUX_VALUES] DMA_RAM = {};
 
 Pin randomButton(RANDOM_BUTTON_GPIO_Port, RANDOM_BUTTON_Pin);
-Pin randomMapButton(RND_MAP_BUTTON_GPIO_Port, RND_MAP_BUTTON_Pin);
+Pin mapButton(RND_MAP_BUTTON_GPIO_Port, RND_MAP_BUTTON_Pin);
 Pin shiftButton(SHIFT_BUTTON_GPIO_Port, SHIFT_BUTTON_Pin);
-Pin modCvButton(MOD_AMT_BUTTON_GPIO_Port, MOD_AMT_BUTTON_Pin);
+Pin mapSelectorSwitch1(RANDOMAMOUNTSW_GPIO_Port, RANDOMAMOUNTSW_Pin);
+Pin mapSelectorSwitch2(RANDOMAMOUNTSW2_GPIO_Port, RANDOMAMOUNTSW2_Pin);
 
 // MUX binary counter digital output pins
 Pin muxA(MUX_A_GPIO_Port, MUX_A_Pin);
@@ -168,17 +164,15 @@ void readMux(uint8_t index, uint16_t *mux_values)
 {
     uint16_t muxA = 4095 - mux_values[MUX_A]; // MOD_LEVEL // 14
     uint16_t muxB = 4095 - mux_values[MUX_B]; // MOD_SPEED // 15
-    uint16_t muxC = 4095 - mux_values[MUX_C]; // RESONATOR_CV // 16
+    uint16_t muxC = 4095 - mux_values[MUX_C]; // RESONATORCV // 16
     uint16_t muxD = 4095 - mux_values[MUX_D]; // Multiplexed params // 17
-    uint16_t muxE = 4095 - mux_values[MUX_E]; // INLEVELGREEN_LED (will be FILTERCV in rev 2) // 5
-    //uint16_t muxF = 4095 - mux_values[MUX_F]; // INLEVELGREEN_LED (will be handled by DAC in rev 2)
+    uint16_t muxE = 4095 - mux_values[MUX_E]; // FILTERCV // 5
 
     setUncalibratedParameterValue(MOD_LEVEL, muxA);
     setUncalibratedParameterValue(MOD_SPEED, muxB);
     setUncalibratedParameterValue(RESONATORCV, muxC);
     setUncalibratedParameterValue(PARAMETER_BA + index, muxD);
-    setUncalibratedParameterValue(INLEVELGREEN_LED, muxE); // Will be FILTERCV in rev 2
-    //setUncalibratedParameterValue(INLEVELGREEN_LED, muxF);
+    setUncalibratedParameterValue(FILTERCV, muxE);
 }
 
 extern "C"
@@ -199,16 +193,23 @@ extern "C"
         {
             for (size_t i = 0; i < NOF_ADC_VALUES; i++)
             {
-                uint16_t value = 4095 - adc_values[i];
+                int16_t value = 4095 - adc_values[i];
+                if (i >= 0 && i <= 3) 
+                {
+                    // Faders have a 5V range.
+                    value -= 1300; // ~ 4095 / 15 * 5
+                    if (value < 0) value = 0;
+                }
                 setUncalibratedParameterValue(i, value);
             }
 
-            // 0 > Filter fader
-            // 1 > Resonator fader
-            // 2 > Echo fader
-            // 3 > Ambience fader
-            // 4 > Echo level cv
-            // 5 > Ambience level cv
+            //  0 > Filter fader
+            //  1 > Resonator fader
+            //  2 > Echo fader
+            //  3 > Ambience fader
+            //  4 > Filter cutoff (0 - 4037)
+            //  5 > Echo cv (-5v - 10v)
+            //  6 > Ambience cv
         }
     }
 }
@@ -224,11 +225,11 @@ void readGpio()
             configuration.cv_attenuverters = !configuration.cv_attenuverters;
         }
     }
-    if (randomMapButtonState != !randomMapButton.get()) // Inverted: pressed = false
+    if (mapButtonState != !mapButton.get()) // Inverted: pressed = false
     {
-        randomMapButtonState = !randomMapButton.get();
-        setButtonValue(RANDOM_MAP, randomMapButtonState);
-        if (CONFIG_MODE_OPTIONS == configMode && randomMapButtonState)
+        mapButtonState = !mapButton.get();
+        setButtonValue(MAP_BUTTON, mapButtonState);
+        if (CONFIG_MODE_OPTIONS == configMode && mapButtonState)
         {
             configuration.mod_attenuverters = !configuration.mod_attenuverters;
         }
@@ -238,14 +239,9 @@ void readGpio()
         shiftButtonState = !shiftButton.get();
         setButtonValue(SHIFT_BUTTON, shiftButtonState);
     }
-    if (modCvButtonState != !modCvButton.get()) // Inverted: pressed = false
-    {
-        modCvButtonState = !modCvButton.get();
-        setButtonValue(MOD_CV_BUTTON, modCvButtonState);
-    }
 
     setAnalogValue(MOD_LED, getParameterValue(MOD));
-    //setAnalogValue(INLEVELGREEN_LED, getParameterValue(INLEVELGREEN));
+    setAnalogValue(INLEVELGREEN_LED, getParameterValue(INLEVELGREEN));
 }
 
 void onChangePin(uint16_t pin)
@@ -286,10 +282,10 @@ void setGateValue(uint8_t ch, int16_t value)
     switch (ch)
     {
     case RANDOM_BUTTON:
-        setLed(RANDOM_LED, value);
+        setLed(RANDOM_BUTTON_LED, value);
         break;
-    case RANDOM_MAP:
-        setLed(RANDOM_MAP_LED, value);
+    case MAP_BUTTON:
+        setLed(MAP_BUTTON_LED, value);
         break;
     case SYNC_GATE:
         setLed(SYNC_LED, value);
@@ -299,12 +295,6 @@ void setGateValue(uint8_t ch, int16_t value)
         break;
     case SHIFT_BUTTON:
         setLed(SHIFT_LED, value);
-        break;
-    case MOD_CV_GREEN:
-        setLed(MOD_CV_GREEN_LED, value);
-        break;
-    case MOD_CV_RED:
-        setLed(MOD_CV_RED_LED, value);
         break;
     case IN_DETEC:
         HAL_GPIO_WritePin(IN_DETEC_GPIO_Port, IN_DETEC_Pin, value ? GPIO_PIN_RESET :  GPIO_PIN_SET);
@@ -316,10 +306,10 @@ void setLed(uint8_t led, uint32_t rgb)
 {
     switch (led)
     {
-    case RANDOM_LED:
+    case RANDOM_BUTTON_LED:
         HAL_GPIO_WritePin(RANDOM_BUTTONLED_GPIO_Port, RANDOM_BUTTONLED_Pin, rgb == NO_COLOUR ? GPIO_PIN_RESET : GPIO_PIN_SET);
         break;
-    case RANDOM_MAP_LED:
+    case MAP_BUTTON_LED:
         HAL_GPIO_WritePin(RND_MAP_BUTTONLED_GPIO_Port, RND_MAP_BUTTONLED_Pin, rgb == NO_COLOUR ? GPIO_PIN_RESET : GPIO_PIN_SET);
         break;
     case SYNC_LED:
@@ -331,42 +321,33 @@ void setLed(uint8_t led, uint32_t rgb)
     case SHIFT_LED:
         HAL_GPIO_WritePin(SHIFT_BUTTONLED_GPIO_Port, SHIFT_BUTTONLED_Pin, rgb == NO_COLOUR ? GPIO_PIN_RESET : GPIO_PIN_SET);
         break;
-    case MOD_CV_GREEN_LED:
-        HAL_GPIO_WritePin(MOD_AMT_BUTTON_LED_2_GPIO_Port, MOD_AMT_BUTTON_LED_2_Pin, rgb == NO_COLOUR ? GPIO_PIN_RESET : GPIO_PIN_SET);
-        break;
-    case MOD_CV_RED_LED:
-        HAL_GPIO_WritePin(MOD_AMT_BUTTON_LED_GPIO_Port, MOD_AMT_BUTTON_LED_Pin, rgb == NO_COLOUR ? GPIO_PIN_RESET : GPIO_PIN_SET);
-        break;
     }
 }
 
 void ledsOn()
 {
-    setLed(RANDOM_LED, 1);
-    setLed(RANDOM_MAP_LED, 1);
+    setLed(RANDOM_BUTTON_LED, 1);
+    setLed(MAP_BUTTON_LED, 1);
     setLed(SYNC_LED, 1);
     setLed(INLEVELRED_LED, 1);
     setLed(SHIFT_LED, 1);
-    setLed(MOD_CV_RED_LED, 1);
     setAnalogValue(MOD_LED, 4095);
 }
 
 void ledsOff()
 {
-    setLed(RANDOM_LED, NO_COLOUR);
-    setLed(RANDOM_MAP_LED, NO_COLOUR);
+    setLed(RANDOM_BUTTON_LED, NO_COLOUR);
+    setLed(MAP_BUTTON_LED, NO_COLOUR);
     setLed(SYNC_LED, NO_COLOUR);
     setLed(INLEVELRED_LED, NO_COLOUR);
     setLed(SHIFT_LED, NO_COLOUR);
-    setLed(MOD_CV_GREEN_LED, NO_COLOUR);
-    setLed(MOD_CV_RED_LED, NO_COLOUR);
     setAnalogValue(MOD_LED, NO_COLOUR);
 }
 
 void updateParameters(int16_t *parameter_values, size_t parameter_len, uint16_t *adc_values, size_t adc_len)
 {
-    //uint8_t value = (randomAmountSwitch2.get() << 1) | randomAmountSwitch1.get();
-    //parameter_values[RANDOM_AMOUNT] = 2047 * (value - 1); // Mid = 0, Low = 2047, High = 4094
+    uint8_t value = (mapSelectorSwitch2.get() << 1) | mapSelectorSwitch1.get();
+    parameter_values[MAP_SELECTOR] = 2047 * (value - 1); // Mid = 0, Low = 2047, High = 4094
 }
 
 void onSetup()
@@ -390,14 +371,13 @@ void onLoop(void)
     static uint32_t counter = PATCH_RESET_COUNTER;
 
     bool shiftButtonPressed = HAL_GPIO_ReadPin(SHIFT_BUTTON_GPIO_Port, SHIFT_BUTTON_Pin) == GPIO_PIN_RESET;
-    bool modCvButtonPressed = HAL_GPIO_ReadPin(MOD_AMT_BUTTON_GPIO_Port, MOD_AMT_BUTTON_Pin) == GPIO_PIN_RESET;
     bool rndButtonPressed = HAL_GPIO_ReadPin(RANDOM_BUTTON_GPIO_Port, RANDOM_BUTTON_Pin) == GPIO_PIN_RESET;
-    bool rndMapButtonPressed = HAL_GPIO_ReadPin(RND_MAP_BUTTON_GPIO_Port, RND_MAP_BUTTON_Pin) == GPIO_PIN_RESET;
+    bool mapButtonPressed = HAL_GPIO_ReadPin(RND_MAP_BUTTON_GPIO_Port, RND_MAP_BUTTON_Pin) == GPIO_PIN_RESET;
     static bool buttonPressed = false;
 
     if (RUN_MODE != owl.getOperationMode())
     {
-        if (shiftButtonPressed && modCvButtonPressed)
+        if (shiftButtonPressed)
         {
             configMode = CONFIG_MODE_OPTIONS;
             buttonPressed = true;
@@ -419,10 +399,6 @@ void onLoop(void)
         else
         {
             configMode = CONFIG_MODE_NONE;
-
-            // Need to turn the MOD/CV button off before restarting the patch...
-            modCvButtonState = 0;
-            setButtonValue(MOD_CV_BUTTON, modCvButtonState);
 
             // Restart the patch.
             program.resetProgram(false);
@@ -449,7 +425,7 @@ void onLoop(void)
     case CONFIGURE_MODE:
         if (CONFIG_MODE_NONE != configMode)
         {
-            if (buttonPressed && !rndMapButtonPressed && !rndButtonPressed && !shiftButtonPressed && !modCvButtonPressed)
+            if (buttonPressed && !mapButtonPressed && !rndButtonPressed && !shiftButtonPressed)
             {
                 buttonPressed = false;
             }
@@ -470,11 +446,10 @@ void onLoop(void)
                 if (CONFIG_MODE_OPTIONS)
                 {
                     readGpio();
-                    setLed(RANDOM_LED, configuration.mod_attenuverters);
-                    setLed(RANDOM_MAP_LED, configuration.cv_attenuverters);
-                    setLed(MOD_CV_GREEN_LED, 1);
+                    setLed(RANDOM_BUTTON_LED, configuration.mod_attenuverters);
+                    setLed(MAP_BUTTON_LED, configuration.cv_attenuverters);
 
-                    if (modCvButtonPressed)
+                    if (mapButtonPressed)
                     {
                         ledsOff();
                         // Save and exit calibration.

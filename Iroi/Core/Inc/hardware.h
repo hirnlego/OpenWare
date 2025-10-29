@@ -67,7 +67,7 @@
 
 #define AUDIO_BLOCK_SIZE            32
 
-#define NOF_ADC_VALUES              6
+#define NOF_ADC_VALUES              7
 #define NOF_MUX_VALUES              5
 #define NOF_PARAMETERS              40
 #define NOF_BUTTONS                 15
