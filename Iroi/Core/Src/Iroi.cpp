@@ -268,10 +268,10 @@ void setAnalogValue(uint8_t ch, int16_t value)
     extern DAC_HandleTypeDef DAC_HANDLE;
     switch (ch)
     {
-    case INLEVELLEDGREEN:
+    case INLEVELGREEN_LED:
         HAL_DAC_SetValue(&DAC_HANDLE, DAC_CHANNEL_1, DAC_ALIGN_12B_R, __USAT(value, 12));
         break;
-    case MOD:
+    case MOD_LED:
         HAL_DAC_SetValue(&DAC_HANDLE, DAC_CHANNEL_2, DAC_ALIGN_12B_R, 4095 - __USAT(value, 12)); // Inverted
         break;
     }
