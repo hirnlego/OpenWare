@@ -1069,11 +1069,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(SHIFT_BUTTON_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : SYNCIN_Pin */
-  GPIO_InitStruct.Pin = SYNCIN_Pin;
+  /*Configure GPIO pins : SYNCIN_Pin RANDOMGATEIN_Pin */
+  GPIO_InitStruct.Pin = SYNCIN_Pin|RANDOMGATEIN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(SYNCIN_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PG2 PG3 PG6 PG7
                            PG10 PG11 */
@@ -1109,12 +1109,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : RANDOMGATEIN_Pin */
-  GPIO_InitStruct.Pin = RANDOMGATEIN_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(RANDOMGATEIN_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : INLEVELREDLED_Pin RANDOM_BUTTONLED_Pin */
   GPIO_InitStruct.Pin = INLEVELREDLED_Pin|RANDOM_BUTTONLED_Pin;

@@ -59,7 +59,7 @@
 #define ECHO_DENSITY       PARAMETER_BE
 #define ECHO_REPEATS       PARAMETER_BD
 #define AMBIENCE_SPACETIME PARAMETER_BA
-#define AMBIENCE_DECAY     PARAMETER_BH
+#define AMBIENCE_DECAY     PARAMETER_BC
 
 enum leds
 {
@@ -282,6 +282,7 @@ void setGateValue(uint8_t ch, int16_t value)
     switch (ch)
     {
     case RANDOM_BUTTON:
+    case RANDOM_GATE:
         setLed(RANDOM_BUTTON_LED, value);
         break;
     case MAP_BUTTON:
