@@ -194,12 +194,6 @@ extern "C"
             for (size_t i = 0; i < NOF_ADC_VALUES; i++)
             {
                 int16_t value = 4095 - adc_values[i];
-                if (i >= 0 && i <= 3) 
-                {
-                    // Faders have a 5V range.
-                    value -= 1300; // ~ 4095 / 15 * 5
-                    if (value < 0) value = 0;
-                }
                 setUncalibratedParameterValue(i, value);
             }
 
