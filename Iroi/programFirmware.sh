@@ -1,6 +1,7 @@
 #!/bin/bash
 PROJECT=Iroi
-HARDWARE=3,0,0
+#HARDWARE=3,0,0
+HARDWARE=4,0,0 # When audio interface is connected
 #CONFIG=Debug
 CONFIG=Release
 
