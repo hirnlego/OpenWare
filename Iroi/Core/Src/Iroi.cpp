@@ -65,8 +65,8 @@ enum leds
 {
     RANDOM_BUTTON_LED = 1,
     MAP_BUTTON_LED,
-    SYNC_LED,
     INLEVELRED_LED,
+    SYNC_LED,
     INLEVELGREEN_LED,
     MOD_LED,
     SHIFT_LED,
