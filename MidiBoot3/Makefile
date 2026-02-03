@@ -81,7 +81,7 @@ lock:
 deploy: upload lock
 
 sysex:
-	FirmwareSender -in "Build/${PROJECT}.bin" -flash `crc32 "Build/${PROJECT}.bin"` -save "Build/${PROJECT}.syx"
+	/home/roberto/Programs/FirmwareSender/Builds/Linux/build/FirmwareSender -in "Build/${PROJECT}.bin" -flash `crc32 "Build/${PROJECT}.bin"` -save "Build/${PROJECT}.syx"
 
 dfu:
 	$(DFUUTIL) -d 0483:df11 -c 1 -i 0 -a 0 -s 0x8000000 -D Build/${PROJECT}.elf

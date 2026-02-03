@@ -144,7 +144,7 @@ void loadConfiguration()
     }
 }
 
-void setUncalibratedParameterValue(uint8_t pid, int16_t value)
+void setFilteredParameterValue(uint8_t pid, int16_t value)
 {
     int16_t previous = getParameterValue(pid);
     // IIR exponential filter with lambda 0.75: y[n] = 0.75*y[n-1] + 0.25*x[n]
@@ -168,11 +168,11 @@ void readMux(uint8_t index, uint16_t *mux_values)
     uint16_t muxD = 4095 - mux_values[MUX_D]; // Multiplexed params // 17
     uint16_t muxE = 4095 - mux_values[MUX_E]; // FILTERCV // 5
 
-    setUncalibratedParameterValue(MOD_LEVEL, muxA);
-    setUncalibratedParameterValue(MOD_SPEED, muxB);
-    setUncalibratedParameterValue(RESONATORCV, muxC);
-    setUncalibratedParameterValue(PARAMETER_BA + index, muxD);
-    setUncalibratedParameterValue(FILTERCV, muxE);
+    setFilteredParameterValue(MOD_LEVEL, muxA);
+    setFilteredParameterValue(MOD_SPEED, muxB);
+    setParameterValue(RESONATORCV, muxC);
+    setFilteredParameterValue(PARAMETER_BA + index, muxD);
+    setParameterValue(FILTERCV, muxE);
 }
 
 extern "C"
@@ -194,7 +194,7 @@ extern "C"
             for (size_t i = 0; i < NOF_ADC_VALUES; i++)
             {
                 int16_t value = 4095 - adc_values[i];
-                setUncalibratedParameterValue(i, value);
+                setParameterValue(i, value);
             }
 
             //  0 > Filter fader

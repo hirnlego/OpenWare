@@ -26,7 +26,7 @@ OBJDUMP=$(TOOLROOT)arm-none-eabi-objdump
 SIZE=$(TOOLROOT)arm-none-eabi-size
 MKDIR=mkdir
 DFUUTIL ?= dfu-util
-FIRMWARESENDER ?= FirmwareSender
+FIRMWARESENDER ?= /home/roberto/Programs/FirmwareSender/Builds/Linux/build/FirmwareSender
 
 # Generate dependency information
 CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
